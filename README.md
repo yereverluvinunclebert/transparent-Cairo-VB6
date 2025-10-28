@@ -25,3 +25,4 @@ Note that the form cannot be dragged in the traditional way (no title bar) so in
 
 This program is a test for replacing RichClient PNG graphic support with an alternative Cairo drop in replacement and TwinBasic native image controls.
 
+The problems are that the CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to this new Cairo implementation will not help much with a 64bit implementation. The code to the Cairo wrapper is available though and in time should be compileable to a 64bit version using TwinBasic. Unfortunately TwinBasic cannot compile the Cairo component successfully yet.
