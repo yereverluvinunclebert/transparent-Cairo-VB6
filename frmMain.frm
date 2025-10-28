@@ -19,11 +19,11 @@ Begin VB.Form frmMain
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
       Height          =   4995
-      Left            =   300
+      Left            =   270
       ScaleHeight     =   4995
       ScaleWidth      =   3705
       TabIndex        =   1
-      Top             =   300
+      Top             =   240
       Width           =   3705
    End
    Begin VB.CommandButton Command 
@@ -87,9 +87,6 @@ Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hw
 Private Const WM_NCLBUTTONDOWN = &HA1
 Private Const HTCAPTION = 2
 
-' things to do
-' create a surface in the 10/- using the code here as an example
-
 '---------------------------------------------------------------------------------------
 ' Procedure : Form_Load
 ' Author    : beededea
@@ -99,9 +96,14 @@ Private Const HTCAPTION = 2
 '---------------------------------------------------------------------------------------
 '
 Private Sub Form_Load()
+
+    'First we need a Surface, which is a "physical thing" (a real Render-Target)
     Dim psfcFrm As cairo_surface_t
     Dim psfcImg As cairo_surface_t
-    Dim pCr     As cairo_t
+    Dim pCr     As cairo_t ' RC equivalent -  Dim CC As cCairoContext
+    
+    Dim lW          As Long
+    Dim lH          As Long
     
     On Error GoTo Form_Load_Error
 
@@ -121,21 +123,35 @@ Private Sub Form_Load()
         Image1.Picture = LoadPicture(App.Path & "\player.jpg")
         Image2.Picture = LoadPicture(App.Path & "\twinbasic.jpg")
     #End If
-
-    ' create a Cairo surface that writes directly to the picture box hardware device context for a picbox, note imageboxes do not have a .hDC
-    psfcFrm = cairo_win32_surface_create(picbox1.hDC)
     
-    ' create a Cairo context for issuing drawing commands on the surface, we aren't doing any drawing just painting using a PNG
-    pCr = cairo_create(psfcFrm)
+    ' that's the native VB6/TwinBasic stuff done, now we play with Cairo
+
+    ' create a Cairo surface that writes directly to the picture box hardware device context for a PICBOX, note imageboxes do not have a .hDC
+    ' a Cairo-Image-Surface is something like an allocated InMemory-Bitmap (a hDIB)
+    psfcFrm = cairo_win32_surface_create(picbox1.hDC) '  RC equivalent Set Srf = Cairo.CreateSurface(200, 100, ImageSurface)
+    
+    ' create a Cairo context for issuing drawing commands on the surface, in this case we aren't doing any drawing just painting using a PNG
+    ' a context is something akin to a hDC in GDI unlike in GDI, where we would "Select" a Bitmap into a hDC first...
+    ' with Cairo we can create such a Cairo context "anytime" from any Surface
+    pCr = cairo_create(psfcFrm) ' RC equivalent Set CC = Srf.CreateContext
 
     ' create a Cairo image object from file
     psfcImg = cairo_image_surface_create_from_png(App.Path & "\tardis.png")
     
+    lW = cairo_image_surface_get_width(psfcImg)
+    lH = cairo_image_surface_get_height(psfcImg)
+    
+    'cairo_set_source_rgba pCr, 1, 0.2, 0.2, 0.1
+    cairo_translate pCr, 128#, 128# ' requires doubles
+    cairo_rotate pCr, M_PI / 4
+    cairo_scale pCr, 1 / Sqr(2), 1 / Sqr(2)
+    cairo_translate pCr, -128#, -128#  ' requires doubles
+
     ' set the cairo context using the surface on the form at a defined position, in this case top/left
     cairo_set_source_surface pCr, psfcImg, 1, 1
     
     'now paint to the cairo context
-    cairo_paint pCr
+    cairo_paint_with_alpha pCr, 0.6 '   CC.Paint with alpha
     
     ' tasks to tidy up, Cairo image, context and surface
     
