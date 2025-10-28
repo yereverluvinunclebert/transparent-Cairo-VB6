@@ -9,7 +9,10 @@ This program runs using VB6 or TwinBasic. It uses the Cairo wrapper DLL and TLB 
 
 When run in VB6, the two image boxes on the right are loaded using JPGs but the result is blocky whilst the background is a solid fill. Note that VB6 imageboxes cannot handle PNGs at all. The picbox on the left displays the PNG correctly when painted with Cairo giving VB6 an ability it previously did not have.
 
-Of course I could easily achieve this with GDI or GDI+ (https://github.com/yereverluvinunclebert/SteamyDock) but the idea is to move away from low level Windows specific frameworks and attempt the same using multi-platform capable graphics framework and using TwinBasic's native controls in the hope that soon these will be able to achieve what I am looking for in order to be able to create layered transparent image apps with events, properties and controlled click-through - https://github.com/twinbasic/twinbasic/issues/2167
+Of course I could easily achieve this with GDI or GDI+ 
+![cogs](https://github.com/yereverluvinunclebert/SteamyDock/assets/2788342/ba617c24-0c77-4577-b211-47e1c05a4a5e)
+
+(https://github.com/yereverluvinunclebert/SteamyDock) but the idea is to move away from low level Windows specific frameworks and attempt the same using multi-platform capable graphics framework and using TwinBasic's native controls in the hope that soon these will be able to achieve what I am looking for in order to be able to create layered transparent image apps with events, properties and controlled click-through - https://github.com/twinbasic/twinbasic/issues/2167
 
 ![picBoTrans002](https://github.com/user-attachments/assets/bb179608-3331-4488-aa6f-09b1f69198d9)
 
