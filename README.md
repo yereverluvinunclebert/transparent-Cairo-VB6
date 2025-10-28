@@ -14,4 +14,9 @@ This is not a mistake of TwinBasic but a hangover from the inadequate method of 
 
 Another artifact left over is a single thin line that marks the boundary edge of the form. This only shows in the VB6 version.
 
-The TwinBasic version handles transparencies very well.
+The TwinBasic version handles transparencies very well. There is a problem though with mouse events. Although the PNGs are displayed correctly in the TwinBasic version, in areas where images overlap, a click on a transparent area around the upper image layer does not respond exactly as you would expect, instead reverting to the layer above, the 'topmost' control. A double-click on each image and the transparent areas that surround them will show which control responds.
+
+Note that the form cannot be dragged in the traditional way (no title bar) so instead you click on an image to drag it to a new location. 
+
+This program is a test for replacing RichClient PNG graphic support with an alternative Cairo drop in replacement and TwinBasic native image controls.
+
