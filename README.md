@@ -5,7 +5,7 @@ This program is a test for replacing RichClient PNG graphic support with an alte
 
 Note that the form cannot be dragged in the traditional way having no title bar, so instead you click on an image to drag it to a new location. 
 
-This program runs using VB6 or TwinBasic.
+This program runs using VB6 or TwinBasic. It uses the Cairo wrapper DLL and TLB found here https://github.com/VBForumsCommunity/VbCairo
 
 When run in VB6, the two image boxes on the right are loaded using JPGs but the result is blocky whilst the background is a solid fill. Note that VB6 imageboxes cannot handle PNGs at all. The picbox on the left displays the PNG correctly when painted with Cairo giving VB6 an ability it previously did not have.
 
