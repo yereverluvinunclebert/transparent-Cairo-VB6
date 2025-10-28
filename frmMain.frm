@@ -15,16 +15,16 @@ Begin VB.Form frmMain
    Begin VB.PictureBox picbox1 
       Appearance      =   0  'Flat
       AutoRedraw      =   -1  'True
-      BackColor       =   &H00FFFF00&
+      BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   5295
-      Left            =   270
-      ScaleHeight     =   5295
-      ScaleWidth      =   3765
+      Height          =   4995
+      Left            =   300
+      ScaleHeight     =   4995
+      ScaleWidth      =   3705
       TabIndex        =   1
       Top             =   300
-      Width           =   3765
+      Width           =   3705
    End
    Begin VB.CommandButton Command 
       Caption         =   "Close"
@@ -113,22 +113,31 @@ Private Sub Form_Load()
     SetWindowLong Me.hwnd, GWL_EXSTYLE, GetWindowLong(Me.hwnd, GWL_EXSTYLE) Or WS_EX_LAYERED ' Or WS_EX_TRANSPARENT
     SetLayeredWindowAttributes Me.hwnd, vbCyan, 0&, LWA_COLORKEY
     
-    ' load the image file to the image control
+    ' load the best image file quality that can be loaded into an image control, for VB6 a JPG, for TB a PNG
     #If TWINBASIC Then
-        Image1.Picture = LoadPicture(App.Path & "\icon.png")
+        Image1.Picture = LoadPicture(App.Path & "\player.png")
+        Image2.Picture = LoadPicture(App.Path & "\twinbasic.png")
     #Else
-        Image1.Picture = LoadPicture(App.Path & "\icon.jpg")
+        Image1.Picture = LoadPicture(App.Path & "\player.jpg")
+        Image2.Picture = LoadPicture(App.Path & "\twinbasic.jpg")
     #End If
 
-    ' create the Cairo surface
+    ' create a Cairo surface that writes directly to the picture box hardware device context for a picbox, note imageboxes do not have a .hDC
     psfcFrm = cairo_win32_surface_create(picbox1.hDC)
+    
+    ' create a Cairo context for issuing drawing commands on the surface, we aren't doing any drawing just painting using a PNG
     pCr = cairo_create(psfcFrm)
 
+    ' create a Cairo image object from file
     psfcImg = cairo_image_surface_create_from_png(App.Path & "\tardis.png")
     
-    ' paint the PNG image to the surface on the form
+    ' set the cairo context using the surface on the form at a defined position, in this case top/left
     cairo_set_source_surface pCr, psfcImg, 1, 1
+    
+    'now paint to the cairo context
     cairo_paint pCr
+    
+    ' tasks to tidy up, Cairo image, context and surface
     
     cairo_surface_destroy psfcImg
     cairo_destroy pCr
