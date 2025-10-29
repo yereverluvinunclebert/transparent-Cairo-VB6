@@ -66,11 +66,27 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
-Private Declare Function GetWindowLong Lib "user32.dll" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
-Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+
+Private Declare Function GetDC Lib "user32" (ByVal hWnd As Long) As Long
+Private Declare Function ReleaseDC Lib "user32" (ByVal hWnd As Long, ByVal hDC As Long) As Long
+Private Declare Function GetDeviceCaps Lib "gdi32" (ByVal hDC As Long, ByVal nIndex As Long) As Long
+
+' vars to obtain correct screen width (to correct VB6 bug) STARTS
+Private Const HORZRES = 8
+Private Const VERTRES = 10
+
+Private screenTwipsPerPixelX As Long
+Private screenTwipsPerPixelY As Long
+
+Private screenWidthTwips As Long
+Private screenHeightTwips As Long
+
+Private Declare Function GetWindowLong Lib "user32.dll" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
+Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Private Declare Function SetLayeredWindowAttributes Lib "user32" ( _
-                ByVal hwnd As Long, _
+                ByVal hWnd As Long, _
                 ByVal crKey As Long, _
                 ByVal bAlpha As Byte, _
                 ByVal dwFlags As Long) As Long
@@ -83,9 +99,32 @@ Private Const GWL_EXSTYLE As Long = -20
 Private Const LWA_COLORKEY = &H1
 
 Private Declare Function ReleaseCapture Lib "user32" () As Long
-Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
+Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
 Private Const WM_NCLBUTTONDOWN = &HA1
 Private Const HTCAPTION = 2
+
+' TwinBasic only functionality to read rawbyte PNG data from a scripting dictionary into
+Private Enum LongPtr
+    [_]
+End Enum
+
+'#If twinbasic Then
+    'Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" ( _
+    Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" ( _
+        ByVal Destination As LongPtr, _
+        ByVal Source As LongPtr, _
+        ByVal Length As Long)
+
+   ' --- Cairo constants ---
+    'Private Const CAIRO_STATUS_SUCCESS As Long = 0
+    '
+    ' --- Our context type for reading PNG data ---
+    Private Type PngReadContext
+        DataPtr As LongPtr
+        DataSize As Long
+        Position As Long
+    End Type
+'#End If
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Form_Load
@@ -100,58 +139,134 @@ Private Sub Form_Load()
     'First we need a Surface, which is a "physical thing" (a real Render-Target)
     Dim psfcFrm As cairo_surface_t
     Dim psfcImg As cairo_surface_t
-    Dim pCr     As cairo_t ' RC equivalent -  Dim CC As cCairoContext
-    
+    Dim pCr     As cairo_t ' RichClient equivalent -  Dim CC As cCairoContext
+    Dim opacity As Single
     Dim lW          As Long
     Dim lH          As Long
     
+    Dim Surfaces  As Object
+    Dim PNGData() As Byte
+        
     On Error GoTo Form_Load_Error
 
     'set the transparency of the underlying form using a colour key to define the transparency
     Me.BackColor = vbCyan
     picbox1.BackColor = vbCyan
     
-    ' WS_EX_TRANSPARENT makes the form click-through but that applies to ALL controls
-    SetWindowLong Me.hwnd, GWL_EXSTYLE, GetWindowLong(Me.hwnd, GWL_EXSTYLE) Or WS_EX_LAYERED ' Or WS_EX_TRANSPARENT
-    SetLayeredWindowAttributes Me.hwnd, vbCyan, 0&, LWA_COLORKEY
+    opacity = 0.9
     
-    ' load the best image file quality that can be loaded into an image control, for VB6 a JPG, for TB a PNG
-    #If TWINBASIC Then
-        Image1.Picture = LoadPicture(App.Path & "\player.png")
-        Image2.Picture = LoadPicture(App.Path & "\twinbasic.png")
-    #Else
-        Image1.Picture = LoadPicture(App.Path & "\player.jpg")
-        Image2.Picture = LoadPicture(App.Path & "\twinbasic.jpg")
-    #End If
+    'set the transparency of the underlying form with click through, makes the form completely transparent
+    SetWindowLong Me.hWnd, GWL_EXSTYLE, GetWindowLong(Me.hWnd, GWL_EXSTYLE) Or WS_EX_LAYERED ' Or WS_EX_TRANSPARENT
+        
+    ' this brings the form back again and sets a colour key to make selected items appear transparent
+    SetLayeredWindowAttributes Me.hWnd, vbCyan, 0&, LWA_COLORKEY
+    
+    ' the addition of "Or WS_EX_TRANSPARENT" to SetWindowLong will make the revealed form fully click-through but unresponsive
+    
+    ' stalled on reading the PNG data from a byte array from a dictionary using VB6 as the cairo_image_surface_create_from_png_stream function requires population via a callback
+    ' it CAN be done using TB callbacks but is not essential to have this within the VB6 program, it is just a proof of concept. To continue, this will eventually be a single image widget demo.
+    
+    ' The code is still here as trial for doing the same in TwinBasic
+    
+#If twinbasic Then
+    ' dictionary for the PNG images
+    Set Surfaces = CreateObject("Scripting.Dictionary")
+    Surfaces.CompareMode = 1 ' for case-insenitive Key-Comparisons
+
+    ' Load PNG bytes into memory
+    PNGData = LoadFileToBytes(App.path & "\tardis.png")
+    
+    'We need to learn how to create a scaled image using Cairo
+    ' HERE
+
+    ' Store PNG bytes in the dictionary
+    Surfaces.Add "Tardis", PNGData
+#End If
+    
+' load the best image file quality that can be loaded into an image control, for VB6 a JPG, for TB a PNG
+#If twinbasic Then
+    Image1.Picture = LoadPicture(App.path & "\player.png")
+    Image2.Picture = LoadPicture(App.path & "\twinbasic.png")
+#Else
+    Image1.Picture = LoadPicture(App.path & "\player.jpg")
+    Image2.Picture = LoadPicture(App.path & "\twinbasic.jpg")
+#End If
+    
+    ' only calling TwipsPerPixelX/Y once on startup
+    screenTwipsPerPixelX = fTwipsPerPixelX
+    screenTwipsPerPixelY = fTwipsPerPixelY
+    
+    screenHeightTwips = GetDeviceCaps(Me.hDC, VERTRES) * screenTwipsPerPixelY
+    screenWidthTwips = GetDeviceCaps(Me.hDC, HORZRES) * screenTwipsPerPixelX
+    
+    'set the main form upon which the dock resides to the size of the whole monitor, has to be done in twips
+'    Me.Height = screenHeightTwips
+'    Me.Width = screenWidthTwips
+'
+'    using Cairo with an existing handle to a window
+
+'    HDC dc = GetDC(windowHandle);
+'    cairo_win32_surface_create(dc);
+'    ReleaseDC(windowHandle, dc);
+'
+'    If you do not want to create a window at this stage use the desktop window to acquire a device context.
+'
+'    Dim hdcScreen As Long
+'
+'    windowHandleHDC = GetDesktopWindow()
+'    hdcScreen = GetDC(windowHandleHDC)
+'    cairo_win32_surface_create dc
+'    ReleaseDC windowHandleHDC, dc
+
+
+'    Register a window class with RegisterClass
+'    Create the window with CreateWindow or CreateWindowEx
+'    Process messages with a message pump by calling GetMessage, TranslateMessage and DispatchMessage
+'
+'Additionally you will have to implement a function to handle processing of window messages such as WM_PAINT.
     
     ' that's the native VB6/TwinBasic stuff done, now we play with Cairo
 
     ' create a Cairo surface that writes directly to the picture box hardware device context for a PICBOX, note imageboxes do not have a .hDC
     ' a Cairo-Image-Surface is something like an allocated InMemory-Bitmap (a hDIB)
-    psfcFrm = cairo_win32_surface_create(picbox1.hDC) '  RC equivalent Set Srf = Cairo.CreateSurface(200, 100, ImageSurface)
+    psfcFrm = cairo_win32_surface_create(picbox1.hDC) '  RichClient equivalent Set Srf = Cairo.CreateSurface(200, 100, ImageSurface)
     
     ' create a Cairo context for issuing drawing commands on the surface, in this case we aren't doing any drawing just painting using a PNG
     ' a context is something akin to a hDC in GDI unlike in GDI, where we would "Select" a Bitmap into a hDC first...
     ' with Cairo we can create such a Cairo context "anytime" from any Surface
-    pCr = cairo_create(psfcFrm) ' RC equivalent Set CC = Srf.CreateContext
+    pCr = cairo_create(psfcFrm) ' RichClient equivalent Set CC = Srf.CreateContext
 
     ' create a Cairo image object from file
-    psfcImg = cairo_image_surface_create_from_png(App.Path & "\tardis.png")
+    psfcImg = cairo_image_surface_create_from_png(App.path & "\tardis.png")
+    
+    ' to read a byte array from a scripting collection and feed it to a Cairo surface is more involved than it looks
+    ' as cairo_image_surface_create_from_png_stream requires a callback from the function that is a helper function that handles the data for Cairo
+    ' RichClient does this using VB6 which I cannot replicate so using TB to do the same
+    
+#If twinbasic Then
+    Dim surf As LongPtr
+    surf = CairoSurfaceFromPngBytes(dict("Tardis"))
+#End If
     
     lW = cairo_image_surface_get_width(psfcImg)
     lH = cairo_image_surface_get_height(psfcImg)
     
-    'cairo_set_source_rgba pCr, 1, 0.2, 0.2, 0.1
+    cairo_select_font_face pCr, "segoe", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD
+    cairo_set_font_size pCr, 32#
+    cairo_set_source_rgba pCr, 0#, 0#, 1#, 0.3
+    cairo_move_to pCr, 10#, 50#
+    cairo_show_text pCr, "TARDIS"
+
     cairo_translate pCr, 128#, 128# ' requires doubles
     cairo_rotate pCr, M_PI / 4
     cairo_scale pCr, 1 / Sqr(2), 1 / Sqr(2)
     cairo_translate pCr, -128#, -128#  ' requires doubles
-
-    ' set the cairo context using the surface on the form at a defined position, in this case top/left
-    cairo_set_source_surface pCr, psfcImg, 1, 1
     
+      ' set the cairo context using the surface on the form at a defined position, in this case top/left
+    cairo_set_source_surface pCr, psfcImg, 1, 1
+        
     'now paint to the cairo context
-    cairo_paint_with_alpha pCr, 0.6 '   CC.Paint with alpha
+    cairo_paint_with_alpha pCr, opacity '   CC.Paint with alpha
     
     ' tasks to tidy up, Cairo image, context and surface
     
@@ -167,6 +282,80 @@ Form_Load_Error:
      MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Form_Load of Form frmMain"
     
 End Sub
+
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : fTwipsPerPixelX
+' Author    : Elroy from Vbforums
+' Date      : 23/01/2021
+' Purpose   : This works even on Tablet PC.  The problem is: when the tablet screen is rotated, the "Screen" object of VB doesn't pick it up.
+'---------------------------------------------------------------------------------------
+'
+Public Function fTwipsPerPixelX() As Single
+    Dim hDC As Long: hDC = 0
+    Dim lPixelsPerInch As Long: lPixelsPerInch = 0
+    
+    Const LOGPIXELSX = 88        '  Logical pixels/inch in X
+    Const POINTS_PER_INCH As Long = 72 ' A point is defined as 1/72 inches.
+    Const TWIPS_PER_POINT As Long = 20 ' Also, by definition.
+    '
+    On Error GoTo fTwipsPerPixelX_Error
+    
+    ' 23/01/2021 .01 monitorModule.bas DAEB added if then else if you can't get device context
+    hDC = GetDC(0)
+    If hDC <> 0 Then
+        lPixelsPerInch = GetDeviceCaps(hDC, LOGPIXELSX)
+        ReleaseDC 0, hDC
+        fTwipsPerPixelX = TWIPS_PER_POINT * (POINTS_PER_INCH / lPixelsPerInch) ' Cancel units to see it.
+    Else
+        fTwipsPerPixelX = Screen.TwipsPerPixelX
+    End If
+
+   On Error GoTo 0
+   Exit Function
+
+fTwipsPerPixelX_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure fTwipsPerPixelX of Module Module1"
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : fTwipsPerPixelY
+' Author    : Elroy from Vbforums
+' Date      : 23/01/2021
+' Purpose   : This works even on Tablet PC.  The problem is: when the tablet screen is rotated, the "Screen" object of VB doesn't pick it up.
+'---------------------------------------------------------------------------------------
+'
+Public Function fTwipsPerPixelY() As Single
+    Dim hDC As Long: hDC = 0
+    Dim lPixelsPerInch As Long: lPixelsPerInch = 0
+    
+    Const LOGPIXELSY = 90        '  Logical pixels/inch in Y
+    Const POINTS_PER_INCH As Long = 72 ' A point is defined as 1/72 inches.
+    Const TWIPS_PER_POINT As Long = 20 ' Also, by definition.
+    
+   On Error GoTo fTwipsPerPixelY_Error
+   
+    ' 23/01/2021 .01 monitorModule.bas DAEB added if then else if you can't get device context
+    hDC = GetDC(0)
+    If hDC <> 0 Then
+        lPixelsPerInch = GetDeviceCaps(hDC, LOGPIXELSY)
+        ReleaseDC 0, hDC
+        fTwipsPerPixelY = TWIPS_PER_POINT * (POINTS_PER_INCH / lPixelsPerInch) ' Cancel units to see it.
+    Else
+        fTwipsPerPixelY = Screen.TwipsPerPixelY
+    End If
+
+   On Error GoTo 0
+   Exit Function
+
+fTwipsPerPixelY_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure fTwipsPerPixelY of Module Module1"
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -376,7 +565,7 @@ Private Sub MouseDownHandler(ByVal ctrlName As String, Optional Button As Intege
     Else
         'MsgBox ctrlName
         ReleaseCapture
-        SendMessage Me.hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+        SendMessage Me.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
     End If
 
     On Error GoTo 0
@@ -408,3 +597,78 @@ DblClickHandler_Error:
 End Sub
 
 
+
+
+
+#If twinbasic Then
+
+    ' --- The callback prototype ---
+    Private Function CairoPngReadFunc( _
+        ByVal closure As LongPtr, _
+        ByVal data As LongPtr, _
+        ByVal Length As Long) As Long
+    
+        Dim ctx As PngReadContext
+        CopyMemory ByVal VarPtr(ctx), ByVal closure, LenB(ctx)
+    
+        Dim remaining As Long
+        remaining = ctx.DataSize - ctx.Position
+        If remaining < Length Then Length = remaining
+    
+        ' Copy the next chunk of bytes into Cairo's buffer
+        CopyMemory ByVal data, ByVal (ctx.DataPtr + ctx.Position), Length
+        ctx.Position = ctx.Position + Length
+    
+        ' Write updated ctx back
+        CopyMemory ByVal closure, ByVal VarPtr(ctx), LenB(ctx)
+    
+        CairoPngReadFunc = CAIRO_STATUS_SUCCESS
+    End Function
+    
+    
+    Public Sub Example_CreateCairoSurfaceFromDictionary()
+        ' --- Create and populate dictionary ---
+        Dim dict As Object
+        Set dict = CreateObject("Scripting.Dictionary")
+    
+        Dim pngBytes() As Byte
+        pngBytes = LoadFileToBytes("C:\example.png")
+    
+        dict.Add "Logo", pngBytes
+    
+        ' --- Build read context ---
+        Dim ctx As PngReadContext
+        ctx.DataPtr = VarPtr(dict("Logo")(0))
+        ctx.DataSize = UBound(dict("Logo")) + 1
+        ctx.Position = 0
+    
+        ' --- Create surface from memory ---
+        Dim surf As LongPtr
+        surf = cairo_image_surface_create_from_png_stream(AddressOf CairoPngReadFunc, VarPtr(ctx))
+    
+        If cairo_surface_status(surf) = CAIRO_STATUS_SUCCESS Then
+            MsgBox "Cairo surface created successfully!"
+        Else
+            MsgBox "Failed to create Cairo surface"
+        End If
+    End Sub
+    
+    Private Function LoadFileToBytes(ByVal path As String) As Byte()
+        Dim f As Integer
+        f = FreeFile
+        Open path For Binary As #f
+        ReDim LoadFileToBytes(LOF(f) - 1)
+        Get #f, , LoadFileToBytes
+        Close #f
+    End Function
+    
+    
+    Public Function CairoSurfaceFromPngBytes(PNGData() As Byte) As LongPtr
+        Dim ctx As PngReadContext
+        ctx.DataPtr = VarPtr(PNGData(0))
+        ctx.DataSize = UBound(PNGData) + 1
+        ctx.Position = 0
+        CairoSurfaceFromPngBytes = cairo_image_surface_create_from_png_stream(AddressOf CairoPngReadFunc, VarPtr(ctx))
+    End Function
+
+#End If
