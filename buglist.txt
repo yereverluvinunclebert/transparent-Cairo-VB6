@@ -4,4 +4,12 @@
 
 ' How to write Cairo images to a transparent form avoiding artifacts
 
-' 
+' What have I learnt?
+
+' RC collections are very useful and easy to use to load a PNG into Cairo.
+
+' RC is very good at placing transparent PNG images on a transparent form.
+
+' Standard collections 
+
+TwinBASIC allows AddressOf callbacks safely; VB6 cannot
