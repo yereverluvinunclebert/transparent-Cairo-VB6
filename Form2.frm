@@ -30,6 +30,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'---------------------------------------------------------------------------------------
+' Module    : Form1
+' Author    : beededea
+' Date      : 12/03/2026
+' Purpose   : puts a transparent image on a VB6 form using Cairo and AlphaBlend
+'---------------------------------------------------------------------------------------
+
 Option Explicit
 
 Private Type BITMAPINFOHEADER
