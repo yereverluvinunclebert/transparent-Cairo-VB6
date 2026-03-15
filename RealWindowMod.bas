@@ -1,4 +1,4 @@
-Attribute VB_Name = "RealWindowMod"
+Attribute VB_Name = "modWindowAPI"
 '---------------------------------------------------------------------------------------
 ' Module    : RealWindowMod
 ' Author    : Andrew Heinlein [Mouse]
@@ -25,7 +25,7 @@ Private Declare Sub PostQuitMessage Lib "user32" (ByVal nExitCode As Long)
 Private Declare Function BeginPaint Lib "user32" (ByVal hwnd As Long, lpPaint As PAINTSTRUCT) As Long
 Private Declare Function EndPaint Lib "user32" (ByVal hwnd As Long, lpPaint As PAINTSTRUCT) As Long
 Private Declare Function GetClientRect Lib "user32" (ByVal hwnd As Long, lpRect As RECT) As Long
-Private Declare Function DrawText Lib "user32" Alias "DrawTextA" (ByVal hdc As Long, ByVal lpStr As String, ByVal nCount As Long, lpRect As RECT, ByVal wFormat As Long) As Long
+Private Declare Function DrawText Lib "user32" Alias "DrawTextA" (ByVal hDC As Long, ByVal lpStr As String, ByVal nCount As Long, lpRect As RECT, ByVal wFormat As Long) As Long
 Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
 Private Declare Function MessageBox Lib "user32" Alias "MessageBoxA" (ByVal hwnd As Long, ByVal lpText As String, ByVal lpCaption As String, ByVal wType As Long) As Long
@@ -40,7 +40,7 @@ Public Type RECT
 End Type
 
 Private Type PAINTSTRUCT
-    hdc As Long
+    hDC As Long
     fErase As Long
     rcPaint As RECT
     fRestore As Long
@@ -126,7 +126,7 @@ Public hWindowHwnd As Long
 Private Function MainWndProc(ByVal hwnd As Long, ByVal message As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
     Dim udtRect As RECT
-    Dim hdc As Long
+    Dim hDC As Long
     Dim ps As PAINTSTRUCT
     Dim thisText As String
         
@@ -138,7 +138,7 @@ Private Function MainWndProc(ByVal hwnd As Long, ByVal message As Long, ByVal wP
         GetClientRect hwnd, udtRect
         
         ' Get a GDI handle to a device context
-        hdc = BeginPaint(hwnd, ps) ' required for WM_PAINT handling
+        hDC = BeginPaint(hwnd, ps) ' required for WM_PAINT handling
         
         ' set the position and size of the user defined text rectangle
         udtRect.Left = 150
@@ -149,14 +149,14 @@ Private Function MainWndProc(ByVal hwnd As Long, ByVal message As Long, ByVal wP
         thisText = "Hello from subclassed WM_PAINT"
         
         ' draw the text at the location, centered
-        DrawText hdc, thisText, Len(thisText), udtRect, DT_CENTER
+        DrawText hDC, thisText, Len(thisText), udtRect, DT_CENTER
         EndPaint hwnd, ps
         
-        ' now we paint the image using Cairo
-        Call drawAlphaPngCairo(hdcScreen, hWindowHwnd, App.Path & "\tardis.png", 20, 20)
+        ' now we paint the image using Cairo, Cairo HAS to load from file as the process to get Cairo to load from a collection is rather tricky using VB6 (Cairo requires a callback as input)
+        'Call drawAlphaPngCairo(thisHDC, hWindowHwnd, App.Path & "\tardis.png", 50, 350)
         
-        ' now we paint the image using GDI+
-        Call drawAlphaPngGDIP(hdcScreen, hWindowHwnd, App.Path & "\tardis.png", 20, 20)
+        ' now we paint the image using GDI+ extracting the image from a previously loaded dictionary, in this case Christian Buse's VBA dictionary replacement
+        Call drawAlphaPngGDIP("tardis", 20, 20)
         
         ' since we have handled this message, return 0 and exit the function to prevent the DefWindowProc from handling it.
         MainWndProc = 0
@@ -167,6 +167,7 @@ Private Function MainWndProc(ByVal hwnd As Long, ByVal message As Long, ByVal wP
     If message = WM_DESTROY Then
         PostQuitMessage 0
         MainWndProc = 0
+        Call thisForm_Unload
         Exit Function
     End If
         
@@ -194,6 +195,8 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
 
     Dim myMsg As Msg
     Dim gButtonHwnd As Long
+    
+    Dim windowLngReturn As Long
     
     On Error GoTo CreateNewWindow_Error
 
@@ -233,17 +236,30 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
     End If
     
     ' remove all titlebar and associated controls
-    'SetWindowLong hWindowHwnd, GWL_STYLE, 0
+    ' SetWindowLong hWindowHwnd, GWL_STYLE, 0
     
-    'set the transparency of the underlying form with full click through, makes the form completely transparent, the created button will not be clickable as it will not be visible
+    'set the transparency of the underlying form with full click through, makes the form completely transparent, the created button will not be clickable as it will not be visible as per Steamydock with GDI+
     'SetWindowLong hWindowHwnd, GWL_EXSTYLE, GetWindowLong(hWindowHwnd, GWL_EXSTYLE) Or WS_EX_LAYERED
     
     ' the addition of "Or WS_EX_TRANSPARENT" to SetWindowLong will make the transparent form fully click-through but ALL controls will be unresponsive, even the titlebar controls.
-    SetWindowLong hWindowHwnd, GWL_EXSTYLE, GetWindowLong(hWindowHwnd, GWL_EXSTYLE) Or WS_EX_LAYERED Or WS_EX_TRANSPARENT
+    'SetWindowLong hWindowHwnd, GWL_EXSTYLE, GetWindowLong(hWindowHwnd, GWL_EXSTYLE) Or WS_EX_LAYERED Or WS_EX_TRANSPARENT
     
     ' Subclass the window (optional, here we're already using our own WndProc)
 '    lpPrevWndProc = GetWindowLong(hWindowHwnd, GWL_WNDPROC)
 '    SetWindowLong hWindowHwnd, GWL_WNDPROC, AddressOf WndProc
+     
+    ' this brings the form back again and uses the colour key cyan to make the form and any other similar items appear transparent
+    'Me.BackColor = vbCyan ' sets the VB6 form to the transparent key colour
+    'SetLayeredWindowAttributes hWindowHwnd, vbCyan, 0&, LWA_COLORKEY
+    
+    
+'             PAINTSTRUCT ps;
+'         RECT rc;
+'         HDC hdc = BeginPaint(hwnd, &ps);
+'         GetClientRect(hwnd, &rc);
+'         SetBkColor(hdc, 0x000000ff); // red
+'         ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, 0, 0, 0);
+'         EndPaint(hwnd, &ps);
 
     'Create a  button
     gButtonHwnd = CreateWindowEx(ByVal 0&, "BUTTON", "OK", WS_CHILD, 58, 90, 100, 50, hWindowHwnd, ByVal 0&, App.hInstance, ByVal 0&)
@@ -269,35 +285,17 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
     
     
     
-    ' Get a device context compatible with the screen, this allows placement of the Cairo image on the desktop window hDC (0)
-    hdcScreen = GetDC(hWindowHwnd)  ' <- writing to the desktop dc fully transparent - overwritten shortly after
+    ' Get a device context compatible with the window, this allows placement of the Cairo image on the user created window hDC
+    thisHDC = GetDC(hWindowHwnd)  ' <- writing to the desktop dc fully transparent - overwritten shortly after
     
-'    hdcScreen = GetDC(hWnd)
-
-    ' Get a device context using the VB6 form
-    'hdcScreen = Me.hDC '  write the PNG to the form on the PAINT event, unfortunate cyan outline
-     
-     ' create your own window
-
-    ' set the screenTwipsPerPixel
-    Call monitorProperties
-            
-    ' resolve VB6 sizing width bug
-    Call resolveVB6SizeBug
-   
-    ' UpdateLayeredWindow structures
-    Call setWindowCharacteristics
+    ' Get a device context compatible with the whole screen, this allows placement of the Cairo image on the desktop window hDC (0)
+    'thisHDC = GetDC(0&)
     
     ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
-    'Call createGDIStructures
+    Call createGDIStructures
 
     ' Create a gdi bitmap with width and height of what we are going to draw into it
-    'Call createNewGDIBitmap
-    
-    ' Calls UpdateLayeredWindow with created GDI bitmap
-    'Call UpdateLayeredWindowUsingGDIBitmap
-    
-    
+    Call createNewGDIBitmap
     
    
     ' message loop to process window messages
@@ -328,12 +326,22 @@ End Function
 ' Procedure : createWindow
 ' Author    : beededea
 ' Date      : 11/03/2026
-' Purpose   : initiate the window, pass address of MainWndProc to subclass, so VB6 can intercept messages such as WM_PAINT
+' Purpose   : determine screen details, initiate the window, pass address of MainWndProc to subclass, so VB6 can intercept messages such as WM_PAINT
 '---------------------------------------------------------------------------------------
 '
 Public Function createWindow(ByVal szWindowTitle As String, ByVal szWindowClass As String, Optional ByVal x As Long = CW_USEDEFAULT, Optional ByVal y As Long = CW_USEDEFAULT, Optional ByVal cx As Long = CW_USEDEFAULT, Optional ByVal cy As Long = CW_USEDEFAULT) As Long
     On Error GoTo createWindow_Error
+    
+    ' set the screenTwipsPerPixel
+    Call monitorProperties
+            
+    ' resolve VB6 sizing width bug
+    Call resolveVB6SizeBug
+   
+    ' UpdateLayeredWindow structures
+    Call setWindowCharacteristics
 
+    'createWindow = CreateNewWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, windowSize.x, windowSize.y)
     createWindow = CreateNewWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, 500, 500)
 
     On Error GoTo 0

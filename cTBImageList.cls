@@ -155,10 +155,10 @@ End Property
 ' Purpose   : Obtain the current count of items in the dictionary
 '---------------------------------------------------------------------------------------
 '
-Public Property Get count() As Long
+Public Property Get Count() As Long
     On Error GoTo Count_Error
 
-    count = mDict.count
+    Count = mDict.Count
 
     On Error GoTo 0
     Exit Property
@@ -299,10 +299,10 @@ End Property
 ' Purpose   : Test to see if the item ImageExists in the dictionary
 '---------------------------------------------------------------------------------------
 '
-Public Property Get ImageExists(key As String) As Boolean
+Public Property Get ImageExists(Key As String) As Boolean
     On Error GoTo ImageExists_Error
 
-        mImageExists = mDict.Exists(key)
+        mImageExists = mDict.Exists(Key)
         
         ImageExists = mImageExists
 
@@ -321,11 +321,11 @@ End Property
 ' Purpose   : Remove a single item from the dictionary
 '---------------------------------------------------------------------------------------
 '
-Public Sub Remove(ByVal key As String)
+Public Sub Remove(ByVal Key As String)
     On Error GoTo Remove_Error
 
-    If mDict.Exists(key) Then
-        mDict.Remove key
+    If mDict.Exists(Key) Then
+        mDict.Remove Key
     End If
 
     On Error GoTo 0
@@ -367,14 +367,14 @@ End Sub
 ' Purpose   : Adds an image to the dictionary
 '---------------------------------------------------------------------------------------
 '
-Public Sub AddImage(ByVal key As String, ByVal FilePath As String)
+Public Sub AddImage(ByVal Key As String, ByVal FilePath As String)
 
     Dim gdipBitmap As Long: gdipBitmap = 0
     Dim pic As StdPicture
 
     On Error GoTo AddImage_Error
 
-    If mDict.Exists(key) Then Err.Raise 457, , "Key already exists"
+    If mDict.Exists(Key) Then Err.Raise 457, , "Key already exists"
     
     If fFExists(FilePath) = False Then
         MsgBox " File not found " & FilePath
@@ -388,20 +388,20 @@ Public Sub AddImage(ByVal key As String, ByVal FilePath As String)
     If mImageWidth <> 0 Or mImageHeight <> 0 Then ' resize required
     
         ' read the file as a series of bytes and create a scaled GDI+ bitmap of the image surface using GdipCreateBitmapFromScan0 and context quality attributes, resizing as we go
-        gdipBitmap = loadResizeGDIPImage(mDict, key, FilePath, mImageWidth, mImageHeight, , mImageOpacity)
+        gdipBitmap = loadResizeGDIPImage(mDict, Key, FilePath, mImageWidth, mImageHeight, , mImageOpacity)
                 
         ' convert the Bitmap to a standard picture
         Set pic = fBmpToStdPicture(gdipBitmap, mImageWidth, mImageHeight)
         
         ' add the image to the dictionary collection
-        mDict.Add pic, key ' image followed by Key for a TB collection
+        mDict.Add pic, Key ' image followed by Key for a TB collection
     
     Else
         ' set the standard picture object to load from a file on disc
         Set pic = LoadPicture(FilePath)
         
         ' add the image to the dictionary collection
-        mDict.Add pic, key ' image followed by Key for a TB collection
+        mDict.Add pic, Key ' image followed by Key for a TB collection
     End If
     
 
@@ -421,13 +421,13 @@ End Sub
 ' Purpose   : extracts the image from the dictionary using similar syntax to Rich Client
 '---------------------------------------------------------------------------------------
 '
-Public Function Picture(ByVal key As String) As StdPicture
+Public Function Picture(ByVal Key As String) As StdPicture
     
     On Error GoTo Picture_Error
 
-    If Not mDict.Exists(key) Then Err.Raise 5, , "Image key not found"
+    If Not mDict.Exists(Key) Then Err.Raise 5, , "Image key not found"
     
-    Set Picture = mDict(key)
+    Set Picture = mDict(Key)
 
     On Error GoTo 0
     Exit Function
