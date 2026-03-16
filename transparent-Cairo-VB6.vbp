@@ -7,6 +7,8 @@ Module=mGDIPImageList; mImageList.bas
 Class=cGdipImageList; cGdipImageList.cls
 Class=cTBImageList; cTBImageList.cls
 Class=Dictionary; Dictionary.cls
+Form=Form1.frm
+Module=modAPIDeclarations; modAPIDeclarations.bas
 Startup="Sub Main"
 HelpFile=""
 Title="Transparent-Cairo-VB6"
@@ -17,7 +19,7 @@ HelpContextID="0"
 CompatibleMode="0"
 MajorVer=0
 MinorVer=0
-RevisionVer=461
+RevisionVer=519
 AutoIncrementVer=1
 ServerSupportFiles=0
 VersionCompanyName="Microsoft"
@@ -37,3 +39,5 @@ Retained=0
 ThreadPerObject=0
 MaxNumberOfThreads=1
 DebugStartupOption=0
+
+

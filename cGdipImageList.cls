@@ -51,7 +51,7 @@ Attribute VB_Exposed = False
 '
 '             thisImageList.AddImage "about-icon-dark", App.Path & "\Resources\images\about-icon-dark-1010.jpg"
 '             Set imgAbout.Picture = thisImageList.Picture("about-icon-dark")
-'             iconBitmap = thisImageList.bitmap("about-icon-dark")
+'             imageBitmap = thisImageList.bitmap("about-icon-dark")
 '             thisImageList.Remove "about-icon-dark"
 '             dictionaryCount = thisImageList.count
 '             If thisImageList.Exists(thiskey) Then ...
@@ -486,7 +486,7 @@ Public Function Bitmap(ByVal Key As String) As Long
 
     If Not mDict.Exists(Key) Then Err.Raise 5, , "Image key not found"
     
-    gpImage = GetImage(Key)
+    Bitmap = GetImage(Key)
 
     On Error GoTo 0
     Exit Function

@@ -114,6 +114,7 @@ Private Const GWL_STYLE As Long = -16
 Private gButOldProc As Long
 Private gHwnd As Long
 Public hWindowHwnd As Long
+Public hVBFormHwnd As Long
 
 
 '---------------------------------------------------------------------------------------
@@ -153,17 +154,17 @@ Private Function MainWndProc(ByVal hwnd As Long, ByVal message As Long, ByVal wP
         EndPaint hwnd, ps
         
         ' now we paint the image using Cairo, Cairo HAS to load from file as the process to get Cairo to load from a collection is rather tricky using VB6 (Cairo requires a callback as input)
-        'Call drawAlphaPngCairo(thisHDC, hWindowHwnd, App.Path & "\tardis.png", 50, 350)
+        Call drawAlphaPngCairo(thisHDC, hWindowHwnd, App.Path & "\tardis.png", 50, 350)
         
         ' now we paint the image using GDI+ extracting the image from a previously loaded dictionary, in this case Christian Buse's VBA dictionary replacement
-        Call drawAlphaPngGDIP("tardis", 20, 20)
+        Call drawAlphaPngGDIP(250, 250, 150, 150)
         
         ' since we have handled this message, return 0 and exit the function to prevent the DefWindowProc from handling it.
         MainWndProc = 0
         Exit Function
     End If
 
-    ' watch for WM_DESTROY message, if it is sent, then let the GetMessage loop in CreateNewWindow know so it breaks out of the GetMessage loop
+    ' watch for WM_DESTROY message, if it is sent, then let the GetMessage loop in createAPIWindow know so it breaks out of the GetMessage loop
     If message = WM_DESTROY Then
         PostQuitMessage 0
         MainWndProc = 0
@@ -183,13 +184,13 @@ MainWndProc_Error:
 End Function
 
 '---------------------------------------------------------------------------------------
-' Procedure : CreateNewWindow
+' Procedure : createAPIWindow
 ' Author    : beededea
 ' Date      : 11/03/2026
 ' Purpose   : Entry Point: Create and run the window
 '---------------------------------------------------------------------------------------
 '
-Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As String, ByVal szWindowTitle As String, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long) As Long
+Private Function createAPIWindow(ByVal MyWndProc As Long, ByVal szWindowClass As String, ByVal szWindowTitle As String, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long) As Long
     
     Dim wcex As WNDCLASSEX
 
@@ -198,7 +199,7 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
     
     Dim windowLngReturn As Long
     
-    On Error GoTo CreateNewWindow_Error
+    On Error GoTo createAPIWindow_Error
 
     ' define a WNDCLASSEX class properties
     wcex.cbSize = LenB(wcex)
@@ -217,7 +218,7 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
     ' registers a window class for subsequent use in calls to the CreateWindowEx API
     If RegisterClassEx(wcex) = 0 Then
         MsgBox "Failed to register window!"
-        CreateNewWindow = -1
+        createAPIWindow = -1
         Exit Function
     End If
     
@@ -231,7 +232,7 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
     If hWindowHwnd = 0 Then
         MsgBox "Failed to create the window!"
         UnregisterClass szWindowClass, App.hInstance
-        CreateNewWindow = -1
+        createAPIWindow = -1
         Exit Function
     End If
     
@@ -283,20 +284,10 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
     ' to set the address of the window procedure.
     Call SetWindowLong(gButtonHwnd, GWL_WNDPROC, GetAddress(AddressOf ButtonWndProc))
     
-    
-    
     ' Get a device context compatible with the window, this allows placement of the Cairo image on the user created window hDC
     thisHDC = GetDC(hWindowHwnd)  ' <- writing to the desktop dc fully transparent - overwritten shortly after
     
-    ' Get a device context compatible with the whole screen, this allows placement of the Cairo image on the desktop window hDC (0)
-    'thisHDC = GetDC(0&)
-    
-    ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
-    Call createGDIStructures
-
-    ' Create a gdi bitmap with width and height of what we are going to draw into it
-    Call createNewGDIBitmap
-    
+    Call setUpGDIP
    
     ' message loop to process window messages
     While GetMessage(myMsg, 0, 0, 0) <> 0 ' waiting for PostQuitMessage to be called to break out
@@ -312,45 +303,40 @@ Private Function CreateNewWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
     UnregisterClass szWindowClass, App.hInstance
     
     ' return exit code
-    CreateNewWindow = myMsg.wParam
+    createAPIWindow = myMsg.wParam
 
     On Error GoTo 0
     Exit Function
 
-CreateNewWindow_Error:
+createAPIWindow_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure CreateNewWindow of Module RealWindowMod"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure createAPIWindow of Module RealWindowMod"
 End Function
 
 '---------------------------------------------------------------------------------------
-' Procedure : createWindow
+' Procedure : initiateAPIWindow
 ' Author    : beededea
 ' Date      : 11/03/2026
 ' Purpose   : determine screen details, initiate the window, pass address of MainWndProc to subclass, so VB6 can intercept messages such as WM_PAINT
 '---------------------------------------------------------------------------------------
 '
-Public Function createWindow(ByVal szWindowTitle As String, ByVal szWindowClass As String, Optional ByVal x As Long = CW_USEDEFAULT, Optional ByVal y As Long = CW_USEDEFAULT, Optional ByVal cx As Long = CW_USEDEFAULT, Optional ByVal cy As Long = CW_USEDEFAULT) As Long
-    On Error GoTo createWindow_Error
+Public Function initiateAPIWindow(ByVal szWindowTitle As String, ByVal szWindowClass As String, Optional ByVal x As Long = CW_USEDEFAULT, Optional ByVal y As Long = CW_USEDEFAULT, Optional ByVal cx As Long = CW_USEDEFAULT, Optional ByVal cy As Long = CW_USEDEFAULT) As Long
+    On Error GoTo initiateAPIWindow_Error
     
-    ' set the screenTwipsPerPixel
-    Call monitorProperties
-            
-    ' resolve VB6 sizing width bug
-    Call resolveVB6SizeBug
-   
-    ' UpdateLayeredWindow structures
-    Call setWindowCharacteristics
+    Call configWindowParams
 
-    'createWindow = CreateNewWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, windowSize.x, windowSize.y)
-    createWindow = CreateNewWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, 500, 500)
+    'initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, windowSize.x, windowSize.y)
+    initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, 500, 500)
 
     On Error GoTo 0
     Exit Function
 
-createWindow_Error:
+initiateAPIWindow_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure createWindow of Module RealWindowMod"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure initiateAPIWindow of Module RealWindowMod"
 End Function
+
+
 
 
 
@@ -427,7 +413,7 @@ Private Sub thisForm_Unload() ' name follows VB6 standard naming convention
     Call SelectObject(dcMemory, hOldBmp) ' releases memory used by any open GDI handles
     Call DeleteObject(hBmpMemory)
     Call DeleteDC(dcMemory)
-    Call ReleaseDC(hWindowHwnd, dcMemory)
+    Call ReleaseDC(hVBFormHwnd, dcMemory)
 
     End
     
