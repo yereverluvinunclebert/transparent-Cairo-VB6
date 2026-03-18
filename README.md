@@ -19,4 +19,9 @@ When run in TwinBasic, the two image boxes are loaded using PNGs as TwinBasic ha
 
 A double-click on each image will cause a msgbox to appear with the clicked-control named so it will become clear which transparent area corresponds to which control.
 
-1. The CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to this new Cairo implementation will not help much with a 64bit implementation. The code to the Cairo wrapper is available though and in time should be compileable to a 64bit version using TwinBasic.
+The CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to this new Cairo implementation will not help much with a 64bit implementation. The code to the Cairo wrapper is available though and in time should be compileable to a 64bit version using TwinBasic.
+
+Status:
+
+BASIC. Puts an image on screen using GDI+ with a right click menu on an invisible VB6 form, not much else. Currently building an image class that will encapsulate the properties of an image, allowing multiple images to be placed on the form.
+' 
