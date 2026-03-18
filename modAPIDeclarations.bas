@@ -14,14 +14,14 @@ Public screenHeightPixels As Long
 Public gSngOpacity As Single
 
 ' functions from user32 to get/set Window characteristics , opacity &c
-Public Declare Function GetWindowLong Lib "user32.dll" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
-Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+Public Declare Function GetWindowLong Lib "user32.dll" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
+Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Public Declare Function SetLayeredWindowAttributes Lib "user32" ( _
-                ByVal hwnd As Long, _
+                ByVal hWnd As Long, _
                 ByVal crKey As Long, _
                 ByVal bAlpha As Byte, _
                 ByVal dwFlags As Long) As Long
-Public Declare Function UpdateLayeredWindow Lib "user32.dll" (ByVal hwnd As Long, ByVal hdcDst As Long, pptDst As Any, psize As Any, ByVal hdcSrc As Long, pptSrc As Any, crKey As Long, ByVal pblend As Long, ByVal dwFlags As Long) As Long
+Public Declare Function UpdateLayeredWindow Lib "user32.dll" (ByVal hWnd As Long, ByVal hdcDst As Long, pptDst As Any, psize As Any, ByVal hdcSrc As Long, pptSrc As Any, crKey As Long, ByVal pblend As Long, ByVal dwFlags As Long) As Long
 
 'public Declare Function AlphaBlend Lib "msimg32.dll" ( _
 '    ByVal hdcDest As Long, _
@@ -42,10 +42,17 @@ Public Const WS_EX_LAYERED = &H80000
 Public Const WS_EX_TRANSPARENT As Integer = &H20
 Public Const GWL_EXSTYLE As Long = -20
 Public Const LWA_COLORKEY = &H1
+Public Const DIB_RGB_COLORS As Long = 0
+
+Public Const HWND_TOP As Long = 0
+Public Const HWND_TOPMOST As Long = -1
+Public Const HWND_NOTOPMOST As Long = -2
+Public Const HWND_BOTTOM As Long = 1
+Public Const SWP_NOSIZE As Long = &H1
 
 Public Type POINTAPI
-    x As Long
-    y As Long
+    X As Long
+    Y As Long
 End Type
 
 Public windowSize As POINTAPI
@@ -53,7 +60,7 @@ Public apiPoint As POINTAPI
 
 ' functions from user32 to capture keydown on a user control to move a form with no visible title bar
 Public Declare Function ReleaseCapture Lib "user32" () As Long
-Public Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
+Public Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
 
 ' vars for the above APIs to capture keydown on a user control to move a form with no visible title bar
 Public Const WM_NCLBUTTONDOWN = &HA1
@@ -90,7 +97,9 @@ Public Declare Function CreateCompatibleBitmap Lib "gdi32" (ByVal hDC As Long, B
 'public Declare Function DeleteDC Lib "gdi32" (ByVal hdc As Long) As Long
 Public Declare Function SetDIBits Lib "gdi32" (ByVal hDC As Long, ByVal hBitmap As Long, ByVal uStartScan As Long, ByVal cScanLines As Long, lpvBits As Any, lpbi As BITMAPINFO, ByVal fuColorUse As Long) As Long
 'public Declare Function ReleaseDC Lib "user32" (ByVal hwnd As Long, ByVal hdc As Long) As Long
-Public Declare Function GetDC Lib "user32" (ByVal hwnd As Long) As Long
+Public Declare Function GetDC Lib "user32" (ByVal hWnd As Long) As Long
+Public Declare Function CreateDIBSection Lib "gdi32.dll" (ByVal hDC As Long, pBitmapInfo As BITMAPINFO, ByVal un As Long, ByRef lplpVoid As Any, ByVal Handle As Long, ByVal dw As Long) As Long
+
 
 ' vars for the functions above to transfer an image from Cairo (in this case) to the Windows desktop or a window
 Public dcMemory As Long
@@ -173,19 +182,24 @@ End Enum
 Public Declare Function SelectObject Lib "gdi32" (ByVal hDC As Long, ByVal hObject As Long) As Long
 Public Declare Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Long
 Public Declare Function DeleteDC Lib "gdi32" (ByVal hDC As Long) As Long
-Public Declare Function ReleaseDC Lib "user32" (ByVal hwnd As Long, ByVal hDC As Long) As Long
+Public Declare Function ReleaseDC Lib "user32" (ByVal hWnd As Long, ByVal hDC As Long) As Long
 
 Public Declare Function GdipCreateFromHDC Lib "GdiPlus.dll" (ByVal hDC As Long, GpGraphics As Long) As Long
-Public Declare Function GdipDrawImageRectI Lib "GDIPlus" _
+Public Declare Function GdipDrawImageRectI Lib "gdiplus" _
     (ByVal Graphics As Long, _
      ByVal image As Long, _
-     ByVal x As Long, _
-     ByVal y As Long, _
+     ByVal X As Long, _
+     ByVal Y As Long, _
      ByVal Width As Long, _
      ByVal height As Long) As Long
      
 Public Declare Function GdipDeleteGraphics Lib "GdiPlus.dll" (ByVal Graphics As Long) As Long
+Public Declare Function GdipReleaseDC Lib "GdiPlus.dll" (ByVal Graphics As Long, ByVal hDC As Long) As Long
+Public Declare Function GdiplusShutdown Lib "gdiplus" (ByVal Token As Long) As Long
+
+Public Declare Function SetWindowPos Lib "user32.dll" (ByVal hWnd As Long, ByVal hWndInsertAfter As Long, ByVal X As Long, ByVal Y As Long, ByVal CX As Long, ByVal CY As Long, ByVal wFlags As Long) As Long
+
 
 Public imageBitmap As Long
-Public gdipFullScreenBitmap As Long
-
+ Public gdipFullScreenBitmap As Long
+    Public windowLngReturn As Long

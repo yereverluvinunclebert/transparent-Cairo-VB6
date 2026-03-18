@@ -135,8 +135,7 @@ Public Sub Main()
     
     useVBForm = True
     
-    ' add image to image list
-    Call addImageToImageList
+
     
     If useVBForm = True Then
         Call vbFormSetup
@@ -165,21 +164,42 @@ Private Sub vbFormSetup()
     On Error GoTo vbFormSetup_Error
 
     thisHDC = GetDC(0&)  ' <- writing to the desktop dc fully transparent - overwritten shortly after
-    hVBFormHwnd = Form1.hwnd
+    hVBFormHwnd = Form1.hWnd
     
-    Call setUpGDIP
+    'thisHDC = Form1.hDC
+        
+    ' check the selected monitor properties and determine the number of twips per pixel for this screen
+    Call monitorProperties
     
-    Call configWindowParams
+    ' resolve VB6 sizing width bug
+    Call resolveVB6SizeBug ' requires MonitorProperties to be in place above to assign a value to screenTwipsPerPixelY
+    
+    'set the main form upon which the dock resides to the size of the whole monitor, has to be done in twips
+    Call setMainFormDimensions
+    
+    ' Initialises GDI Plus
+    Call initialiseGDIPStartup
+    
+    ' add image to image list
+    Call addImageToImageList
     
     imageBitmap = readImageFromDictionary("tardis")
     
-    ' now we paint the image using GDI+ extracting the image from a previously loaded dictionary, in this case Christian Buse's VBA dictionary replacement
-    Call drawAlphaPngGDIP(250, 250, 150, 150)
-        
-    'set the transparency of the underlying form with full click through, makes the form completely transparent, the created button will not be clickable as it will not be visible as per Steamydock with GDI+
-    'SetWindowLong hVBFormHwnd, GWL_EXSTYLE, GetWindowLong(hVBFormHwnd, GWL_EXSTYLE) Or WS_EX_LAYERED
+    ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
+    Call createGDIStructures
+           
+    'creates a bitmap section in memory that applications can write to directly
+    Call createNewGDIPBitmap
+    
+    ' update the window with the appropriately sized and qualified image
+    Call setWindowCharacteristics ' This is the function that actually changes the display, called by animate timers, must also be here
+    
 
-    Form1.Show
+'    Call setUpGDIP
+
+'    Call configWindowParams
+
+    'Form1.Show
     
     On Error GoTo 0
     Exit Sub
@@ -208,7 +228,7 @@ Public Sub setUpGDIP()
     Call createGDIStructures
 
     ' Create a gdi bitmap with width and height of what we are going to draw into it
-    Call createNewGDIBitmap
+    Call createNewGDIPBitmap
 
     On Error GoTo 0
     Exit Sub
@@ -232,10 +252,10 @@ Public Sub configWindowParams()
     On Error GoTo configWindowParams_Error
 
     Call monitorProperties
-            
+
     ' resolve VB6 sizing width bug
     Call resolveVB6SizeBug
-   
+
     ' UpdateLayeredWindow structures
     Call setWindowCharacteristics
 
@@ -256,7 +276,7 @@ End Sub
 ' Purpose   : addition of the used images to the GDIP imageList dictionary
 '---------------------------------------------------------------------------------------
 '
-Private Sub addImageToImageList()
+Public Sub addImageToImageList()
     
     On Error GoTo addImageToImageList_Error
 
@@ -271,7 +291,28 @@ addImageToImageList_Error:
 
 End Sub
 
+'---------------------------------------------------------------------------------------
+' Procedure : setMainFormDimensions
+' Author    : beededea
+' Date      : 31/10/2025
+' Purpose   : set the main form upon which the dock resides to the size of the whole monitor, has to be done in twips
+'---------------------------------------------------------------------------------------
+'
+Public Sub setMainFormDimensions()
+    '
+    On Error GoTo setMainFormDimensions_Error
 
+    Form1.Height = screenHeightTwips
+    Form1.Width = screenWidthTwips
+
+    On Error GoTo 0
+    Exit Sub
+
+setMainFormDimensions_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure setMainFormDimensions of Form dock"
+
+End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : monitorProperties
@@ -308,15 +349,14 @@ End Function
 '
 Public Sub resolveVB6SizeBug()
 
-    Dim hDC As Long: hDC = 0
-
     On Error GoTo resolveVB6SizeBug_Error
     
-    hDC = GetDC(0)
+'    Me.Height = Screen.Height '16200 correct
+'    Me.Width = Screen.Width ' 16200 < VB6 bug here
     
     ' pixels for Cairo and GDI
-    screenHeightPixels = GetDeviceCaps(hDC, VERTRES)
-    screenWidthPixels = GetDeviceCaps(hDC, HORZRES)
+    screenHeightPixels = GetDeviceCaps(thisHDC, VERTRES)
+    screenWidthPixels = GetDeviceCaps(thisHDC, HORZRES)
     
     'twips for VB6 forms and controls
     screenHeightTwips = screenHeightPixels * screenTwipsPerPixelY
@@ -340,20 +380,33 @@ Public Sub setWindowCharacteristics()
 
     On Error GoTo setWindowCharacteristics_Error
     
-    ' UpdateLayeredWindow structures
+    'set the transparency of the underlying form with click through
+'    windowLngReturn = GetWindowLong(Form1.hWnd, GWL_EXSTYLE)
+'    SetWindowLong Form1.hWnd, GWL_EXSTYLE, windowLngReturn Or WS_EX_LAYERED
+    
+'    If rDzOrderMode = "0" Then
+'        SetWindowPos dock.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE
+'    ElseIf rDzOrderMode = "1" Then
+'        SetWindowPos dock.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE
+'    ElseIf rDzOrderMode = "2" Then
+        SetWindowPos Form1.hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE
+'    End If
     
     ' point structure that specifies the location of the layer updated in UpdateLayeredWindow
-    apiPoint.x = 0
-    apiPoint.y = 0
+    apiPoint.X = 0
+    apiPoint.Y = 0
     
     ' point structure that specifies the size of the window in pixels
-    windowSize.x = screenWidthPixels ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
-    windowSize.y = screenHeightPixels  ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
+    windowSize.X = screenWidthPixels ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
+    windowSize.Y = screenHeightPixels  ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
     
-    ' use the source image's alpha channel for blending characteristics, opacity &c for use in UpdateLayeredWindow later In SD it is used im in setWindowCharacteristics
-    funcBlend32bpp.BlendOp = AC_SRC_OVER
-    funcBlend32bpp.SourceConstantAlpha = 255 * gSngOpacity ' set the opacity of the whole bitmap, used to display solidly and for instant autohide
+    ' blending characteristics for opacity
     funcBlend32bpp.AlphaFormat = AC_SRC_ALPHA
+    funcBlend32bpp.BlendFlags = 0
+    funcBlend32bpp.BlendOp = AC_SRC_OVER
+  
+    ' set the opacity of the whole dock, used to display solidly and for instant autohide
+    funcBlend32bpp.SourceConstantAlpha = 255 * Val(100) / 100 ' this calc can be done elsewhere and we just use a passed var
     
    On Error GoTo 0
    Exit Sub
@@ -380,11 +433,11 @@ Public Sub createGDIStructures()
     ' Set the bitmap characteristics for use in SetDIBits later
     With bmpInfo.bmpHeader
         .biSize = Len(bmpInfo.bmpHeader)
-        .biWidth = windowSize.x
-        .biHeight = -windowSize.y
+        .biWidth = windowSize.X
+        .biHeight = -windowSize.Y
         .biPlanes = 1
         .biBitCount = 32
-        .biCompression = BI_RGB
+        .biSizeImage = .biWidth * .biHeight * (.biBitCount / 8)
     End With
     
     ' A device context is a generalized rendering abstraction. It serves as a proxy between your rendering code and the output device.
@@ -404,26 +457,30 @@ createGDIStructures_Error:
 End Sub
 
 '---------------------------------------------------------------------------------------
-' Procedure : createNewGDIBitmap
+' Procedure : createNewGDIPBitmap
 ' Author    : beededea
 ' Date      : 05/11/2025
 ' Purpose   : Create a gdi bitmap with width and height of what we are going to draw into it. This is the entire drawing area for everything,
 '             creating a bitmap in memory that our VB6/GDI application writes to directly. Called each animation interval.
 '---------------------------------------------------------------------------------------
 '
-Public Sub createNewGDIBitmap()
+Public Sub createNewGDIPBitmap()
 
-    On Error GoTo createNewGDIBitmap_Error
+    On Error GoTo createNewGDIPBitmap_Error
 
     ' the existing bitmap deleted
     Call DeleteObject(hBmpMemory) '
     
+    ' create a device independent bitmap and return a handle, hBmpMemory, providing it a handle to device context allocated memory previously created with CreateCompatibleDC,
+    ' providing size information in bmpInfo and setting any attributes to the new bitmap
+    hBmpMemory = CreateDIBSection(dcMemory, bmpInfo, DIB_RGB_COLORS, ByVal 0, 0, 0)
+    
     ' create a compatible bitmap DDB and return a handle, bmpMemory, providing it a handle to device context dcMemory, allocated memory previously created with CreateCompatibleDC,
     ' providing size information
-    hBmpMemory = CreateCompatibleBitmap(thisHDC, windowSize.x, windowSize.y) ' in SD uses CreateDIBSection within createNewGDIPBitmap
+    'hBmpMemory = CreateCompatibleBitmap(dcMemory, windowSize.x, windowSize.y) ' in SD uses CreateDIBSection within createNewGDIPBitmap
     
     ' Make the device context dcMemory use the bitmap.  hOldBmp is a return value giving a handle which determines success and allows reverting later to release GDI handles
-    hOldBmp = SelectObject(thisHDC, hBmpMemory) ' releases memory used by any open GDI handle  in SD used within createNewGDIPBitmap
+    hOldBmp = SelectObject(dcMemory, hBmpMemory) ' releases memory used by any open GDI handle  in SD used within createNewGDIPBitmap
     
     ' Creates a GDIP graphic object and provides a pointer 'gdipFullScreenBitmap' using a handle to the bitmap graphic section assigned to the device context
     Call GdipCreateFromHDC(thisHDC, gdipFullScreenBitmap) ' dcMemory used to draw upon and place on screen using UpdateLayeredWindow later
@@ -431,87 +488,13 @@ Public Sub createNewGDIBitmap()
     On Error GoTo 0
     Exit Sub
 
-createNewGDIBitmap_Error:
+createNewGDIPBitmap_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure createNewGDIBitmap of Form frmMain"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure createNewGDIPBitmap of Form frmMain"
     
 End Sub
 
-'---------------------------------------------------------------------------------------
-' Procedure : drawAlphaPngCairo
-' Author    : beededea
-' Date      : 31/10/2025
-' Purpose   : draw a PNG image with a transparent background using Cairo only, no GDI+
-'---------------------------------------------------------------------------------------
-'
-Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hwnd As Long, ByVal sPngPath As String, ByVal x As Long, ByVal y As Long)
-    Dim Width As Long
-    Dim height As Long
 
-    On Error GoTo drawAlphaPngCairo_Error
-    
-    gSngOpacity = 1
-
-    ' create a Cairo surface from an on-disc PNG
-    surfPng = cairo_image_surface_create_from_png(sPngPath)
-    If surfPng = 0 Then Exit Sub
-
-    Width = cairo_image_surface_get_width(surfPng)
-    height = cairo_image_surface_get_height(surfPng)
-
-    ' Draw the PNG on an intermediate offscreen ARGB Cairo surface that supports alpha (offscreen buffer).
-
-    ' a Cairo-Image-Surface is something like an allocated InMemory-Bitmap (a hDIB)
-    ' surfImg = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height)
-    
-    ' ^^^^^^^^^^^^^^^^^^^^^^^^
-    ' the above Cairo function does not work and I believe this is the reason why the logic overall does not work
-    
-    ' create a Cairo surface that writes directly to a hardware device context
-    surfImg = cairo_win32_surface_create(thisHDC) '  RichClient equivalent Set Srf = Cairo.CreateSurface(200, 100, ImageSurface) or GdipCreateFromHDC
-    ' although this places a surface on the current Dc I think this is incorrect, should be using cairo_image_surface_create from RC
-    
-    ' create a Cairo context for issuing drawing commands on the surface, in this case we aren't doing any drawing just painting using a PNG
-    ' a context is something akin to a hDC in GDI unlike in GDI, where we would Select a Bitmap into a hDC first.
-    ' we can create such a Cairo context anytime from any Surface
-    cr = cairo_create(surfImg)
-        
-    cairo_select_font_face cr, "segoe", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD
-    cairo_set_font_size cr, 32#
-    cairo_set_source_rgba cr, 0#, 0#, 1#, 0.3
-    cairo_move_to cr, 10#, 50#
-    cairo_show_text cr, "TARDIS"
-
-    cairo_translate cr, x, y
-    cairo_rotate cr, M_PI / 4
-    cairo_scale cr, 1 / Sqr(2), 1 / Sqr(2)
-    cairo_translate cr, -x, -y
-'
-'    ' set the cairo context using the surface on the form at a defined position, in this case top/left
-    cairo_set_source_surface cr, surfPng, 0, 0
-
-    ' Paint the PNG (preserves alpha)
-    cairo_paint_with_alpha cr, gSngOpacity '   CC.Paint with alpha
-    'cairo_paint cr
-
-    ' Get pointer to pixel buffer
-    'dataPtrPixelBuffer = cairo_image_surface_get_data(surfImg)
-
-    ' Copy Cairo ARGB pixel buffer into HBITMAP compatible DDB hBmpMemory (usually has better GDI performance than a DIB as used in Steamydock)
-    'Call SetDIBits(dcMemory, hBmpMemory, 0, height, ByVal dataPtrPixelBuffer, bmpInfo, 0) '*  in SD, an equivalent of GdipCreateFromHDC used within createNewGDIPBitmap?
-    
-    ' tasks to tidy up, Cairo image, context and surface
-    cairo_destroy cr
-    cairo_surface_destroy surfImg
-    cairo_surface_destroy surfPng
-
-    On Error GoTo 0
-    Exit Sub
-
-drawAlphaPngCairo_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure drawAlphaPngCairo of Form frmMain"
-End Sub
 
 
 '---------------------------------------------------------------------------------------
@@ -521,14 +504,14 @@ End Sub
 ' Purpose   : draw a PNG image with a transparent background using GDI+
 '---------------------------------------------------------------------------------------
 '
-Public Sub drawAlphaPngGDIP(ByVal x As Long, ByVal y As Long, cx As Long, cy As Long)
+Public Sub drawAlphaPngGDIP(ByVal X As Long, ByVal Y As Long, CX As Long, CY As Long)
 
     On Error GoTo drawAlphaPngGDIP_Error
     
-    gSngOpacity = 1
+    imageBitmap = readImageFromDictionary("tardis")
 
      'draws a icon bitmap onto the GDIP full screen
-    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, x, y, cx, cy)  ' shrinks the bitmap into the image object
+    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, X, Y, CX, CY)  ' shrinks the bitmap into the image object
 
     ' Calls UpdateLayeredWindow with created GDI bitmap
     Call updateScreenUsingGDIPBitmap
@@ -542,6 +525,33 @@ drawAlphaPngGDIP_Error:
 End Sub
 
 
+'---------------------------------------------------------------------------------------
+' Procedure : updateDisplayFromDictionary
+' Author    : beededea
+' Date      : 07/04/2020
+' Purpose   : This utility displays using GDI+, one of several icon images stored in a dictionary collection by key.
+'---------------------------------------------------------------------------------------
+'
+Public Function updateDisplayFromDictionary(ByVal Key As String, Optional Left As Long = 0, Optional Top As Long = 0, Optional Width As Long = -1, Optional Height As Long = -1) As Boolean
+
+    On Error GoTo updateDisplayFromDictionary_Error
+
+    ' get the stored image from the collection if it exists
+    'imageBitmap = readImageFromDictionary("tardis")
+    
+    'draws a icon bitmap onto the GDIP full screen
+    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, Left, Top, Width, Height)  ' shrinks the bitmap into the image object
+    
+   Exit Function
+
+updateDisplayFromDictionary_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure updateDisplayFromDictionary of Form dock"
+
+    On Error GoTo 0
+    Exit Function
+    
+End Function
 
         
 '---------------------------------------------------------------------------------------
@@ -557,7 +567,7 @@ Public Function readImageFromDictionary(ByVal Key As String) As Long
     
     ' get the stored image from the collection if it exists
     If thisImageList.Exists(Key) <> 0 Then
-        readImageFromDictionary = thisImageList.Bitmap("tardis") ' return value
+        readImageFromDictionary = thisImageList.Bitmap(Key) ' return value
     End If
     
    Exit Function
@@ -601,10 +611,10 @@ Public Sub updateScreenUsingGDIPBitmap()
     Call UpdateLayeredWindow(hVBFormHwnd, thisHDC, ByVal 0&, windowSize, dcMemory, apiPoint, 0, VarPtr(funcBlend32bpp), ULW_ALPHA)   '*  in SD called whenever a draw is required
 
     ' releases memory for GDI handles
-    Call SelectObject(dcMemory, hOldBmp)
+    'Call SelectObject(dcMemory, hOldBmp)
 '    ' the existing bitmap deleted
-    Call DeleteObject(hBmpMemory) '
-    DeleteDC dcMemory
+    'Call DeleteObject(hBmpMemory) '
+    'DeleteDC dcMemory
     'ReleaseDC 0, thisHDC
 
     On Error GoTo 0
@@ -906,7 +916,7 @@ End Function
 '    ' Create a GDI bitmap with width and height of what we are going to draw into it
 '    On Error GoTo Timer_Timer_Error
 '
-'    'Call createNewGDIBitmap
+'    'Call createNewGDIPBitmap
 '
 '    ' that's the native VB6/TwinBasic stuff done, now we play with Cairo
 '    Call drawAlphaPngCairo(hdcScreen, Me.hwnd, App.Path & "\tardis.png", 20, 20)
@@ -920,3 +930,80 @@ End Function
 '
 '     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Timer_Timer of Form frmMain"
 'End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : drawAlphaPngCairo
+' Author    : beededea
+' Date      : 31/10/2025
+' Purpose   : draw a PNG image with a transparent background using Cairo only, no GDI+
+'---------------------------------------------------------------------------------------
+'
+Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hWnd As Long, ByVal sPngPath As String, ByVal X As Long, ByVal Y As Long)
+    Dim Width As Long
+    Dim Height As Long
+
+    On Error GoTo drawAlphaPngCairo_Error
+    
+    gSngOpacity = 1
+
+    ' create a Cairo surface from an on-disc PNG
+    surfPng = cairo_image_surface_create_from_png(sPngPath)
+    If surfPng = 0 Then Exit Sub
+
+    Width = cairo_image_surface_get_width(surfPng)
+    Height = cairo_image_surface_get_height(surfPng)
+
+    ' Draw the PNG on an intermediate offscreen ARGB Cairo surface that supports alpha (offscreen buffer).
+
+    ' a Cairo-Image-Surface is something like an allocated InMemory-Bitmap (a hDIB)
+    ' surfImg = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height)
+    
+    ' ^^^^^^^^^^^^^^^^^^^^^^^^
+    ' the above Cairo function does not work and I believe this is the reason why the logic overall does not work
+    
+    ' create a Cairo surface that writes directly to a hardware device context
+    surfImg = cairo_win32_surface_create(thisHDC) '  RichClient equivalent Set Srf = Cairo.CreateSurface(200, 100, ImageSurface) or GdipCreateFromHDC
+    ' although this places a surface on the current Dc I think this is incorrect, should be using cairo_image_surface_create from RC
+    
+    ' create a Cairo context for issuing drawing commands on the surface, in this case we aren't doing any drawing just painting using a PNG
+    ' a context is something akin to a hDC in GDI unlike in GDI, where we would Select a Bitmap into a hDC first.
+    ' we can create such a Cairo context anytime from any Surface
+    cr = cairo_create(surfImg)
+        
+    cairo_select_font_face cr, "segoe", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD
+    cairo_set_font_size cr, 32#
+    cairo_set_source_rgba cr, 0#, 0#, 1#, 0.3
+    cairo_move_to cr, 10#, 50#
+    cairo_show_text cr, "TARDIS"
+
+    cairo_translate cr, X, Y
+    cairo_rotate cr, M_PI / 4
+    cairo_scale cr, 1 / Sqr(2), 1 / Sqr(2)
+    cairo_translate cr, -X, -Y
+'
+'    ' set the cairo context using the surface on the form at a defined position, in this case top/left
+    cairo_set_source_surface cr, surfPng, 0, 0
+
+    ' Paint the PNG (preserves alpha)
+    cairo_paint_with_alpha cr, gSngOpacity '   CC.Paint with alpha
+    'cairo_paint cr
+
+    ' Get pointer to pixel buffer
+    'dataPtrPixelBuffer = cairo_image_surface_get_data(surfImg)
+
+    ' Copy Cairo ARGB pixel buffer into HBITMAP compatible DDB hBmpMemory (usually has better GDI performance than a DIB as used in Steamydock)
+    'Call SetDIBits(dcMemory, hBmpMemory, 0, height, ByVal dataPtrPixelBuffer, bmpInfo, 0) '*  in SD, an equivalent of GdipCreateFromHDC used within createNewGDIPBitmap?
+    
+    ' tasks to tidy up, Cairo image, context and surface
+    cairo_destroy cr
+    cairo_surface_destroy surfImg
+    cairo_surface_destroy surfPng
+
+    On Error GoTo 0
+    Exit Sub
+
+drawAlphaPngCairo_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure drawAlphaPngCairo of Form frmMain"
+End Sub

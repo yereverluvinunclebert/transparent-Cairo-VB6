@@ -15,7 +15,7 @@ Private Declare Function TranslateMessage Lib "user32" (lpMsg As Msg) As Long
 Private Declare Function DispatchMessage Lib "user32" Alias "DispatchMessageA" (lpMsg As Msg) As Long
 Private Declare Function ShowWindow Lib "user32" (ByVal hwnd As Long, ByVal nCmdShow As Long) As Long
 Private Declare Function UpdateWindow Lib "user32" (ByVal hwnd As Long) As Long
-Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" (ByVal dwExStyle As Long, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, lpParam As Any) As Long
+Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" (ByVal dwExStyle As Long, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, lpParam As Any) As Long
 Private Declare Function RegisterClassEx Lib "user32" Alias "RegisterClassExA" (pcWndClassEx As WNDCLASSEX) As Integer
 Private Declare Function LoadCursor Lib "user32" Alias "LoadCursorA" (ByVal hInstance As Long, ByVal lpCursorName As Long) As Long
 Private Declare Function UnregisterClass Lib "user32" Alias "UnregisterClassA" (ByVal lpClassName As String, ByVal hInstance As Long) As Long
@@ -64,8 +64,8 @@ Private Type WNDCLASSEX
 End Type
 
 Private Type POINTAPI
-    x As Long
-    y As Long
+    X As Long
+    Y As Long
 End Type
 
 ' --- MSG structure ---
@@ -190,7 +190,7 @@ End Function
 ' Purpose   : Entry Point: Create and run the window
 '---------------------------------------------------------------------------------------
 '
-Private Function createAPIWindow(ByVal MyWndProc As Long, ByVal szWindowClass As String, ByVal szWindowTitle As String, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long) As Long
+Private Function createAPIWindow(ByVal MyWndProc As Long, ByVal szWindowClass As String, ByVal szWindowTitle As String, ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long) As Long
     
     Dim wcex As WNDCLASSEX
 
@@ -227,7 +227,7 @@ Private Function createAPIWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
                               szWindowClass, _
                               szWindowTitle, _
                               WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or WS_OVERLAPPEDWINDOW, _
-                              x, y, cx, cy, 0, 0, App.hInstance, 0)
+                              X, Y, cx, cy, 0, 0, App.hInstance, 0)
                               
     If hWindowHwnd = 0 Then
         MsgBox "Failed to create the window!"
@@ -320,13 +320,13 @@ End Function
 ' Purpose   : determine screen details, initiate the window, pass address of MainWndProc to subclass, so VB6 can intercept messages such as WM_PAINT
 '---------------------------------------------------------------------------------------
 '
-Public Function initiateAPIWindow(ByVal szWindowTitle As String, ByVal szWindowClass As String, Optional ByVal x As Long = CW_USEDEFAULT, Optional ByVal y As Long = CW_USEDEFAULT, Optional ByVal cx As Long = CW_USEDEFAULT, Optional ByVal cy As Long = CW_USEDEFAULT) As Long
+Public Function initiateAPIWindow(ByVal szWindowTitle As String, ByVal szWindowClass As String, Optional ByVal X As Long = CW_USEDEFAULT, Optional ByVal Y As Long = CW_USEDEFAULT, Optional ByVal cx As Long = CW_USEDEFAULT, Optional ByVal cy As Long = CW_USEDEFAULT) As Long
     On Error GoTo initiateAPIWindow_Error
     
     Call configWindowParams
 
     'initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, windowSize.x, windowSize.y)
-    initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, 500, 500)
+    initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, X, Y, 500, 500)
 
     On Error GoTo 0
     Exit Function
@@ -407,15 +407,20 @@ End Function
 ' Purpose   : the standard form unload routine called from several places
 '---------------------------------------------------------------------------------------
 '
-Private Sub thisForm_Unload() ' name follows VB6 standard naming convention
+Public Sub thisForm_Unload() ' name follows VB6 standard naming convention
     On Error GoTo Form_Unload_Error
     
     Call SelectObject(dcMemory, hOldBmp) ' releases memory used by any open GDI handles
     Call DeleteObject(hBmpMemory)
     Call DeleteDC(dcMemory)
     Call ReleaseDC(hVBFormHwnd, dcMemory)
-
-    End
+    
+    If gdipFullScreenBitmap Then
+        Call GdipReleaseDC(gdipFullScreenBitmap, dcMemory)
+        Call GdipDeleteGraphics(gdipFullScreenBitmap)
+    End If
+    If imageBitmap Then Call GdipDisposeImage(imageBitmap)
+    If lngGDI Then Call GdiplusShutdown(lngGDI)
     
     Call unloadAllForms(True)
 

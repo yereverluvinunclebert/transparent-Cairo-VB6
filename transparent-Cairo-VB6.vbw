@@ -1,6 +1,8 @@
-modMain = 78, 78, 1436, 972, 
-modWindowAPI = 130, 130, 1488, 1024, Z
+modMain = 78, 78, 1436, 972, Z
+modWindowAPI = 130, 130, 1488, 1024, 
 mGDIPImageList = 130, 130, 1488, 1024, 
 cGdipImageList = 78, 78, 1436, 972, 
 cTBImageList = 156, 156, 1514, 1050, 
 Dictionary = 156, 156, 1346, 1050, 
+Form1 = 234, 234, 1734, 1128, , 182, 182, 1682, 1076, C
+modAPIDeclarations = 260, 260, 1760, 1154, 
