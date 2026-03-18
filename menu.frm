@@ -40,16 +40,7 @@ Option Explicit
 Private Sub mnuQuit_Click()
 
     On Error GoTo mnuQuit_Click_Error
-    
-'    If dock.tmrWriteCache.Enabled = True Then
-'
-'        MsgBox "Try again in a few seconds, just tidying up, " & gblRecordsToCommit & " remaining records to commit"
-'
-'        Exit Sub
-'    End If
-    
-    Form1.Hide
-    
+       
     Call thisForm_Unload
 
    On Error GoTo 0
