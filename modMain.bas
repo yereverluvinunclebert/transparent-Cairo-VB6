@@ -381,8 +381,8 @@ Public Sub setWindowCharacteristics()
     On Error GoTo setWindowCharacteristics_Error
     
     'set the transparency of the underlying form with click through
-'    windowLngReturn = GetWindowLong(Form1.hWnd, GWL_EXSTYLE)
-'    SetWindowLong Form1.hWnd, GWL_EXSTYLE, windowLngReturn Or WS_EX_LAYERED
+    windowLngReturn = GetWindowLong(Form1.hWnd, GWL_EXSTYLE)
+    SetWindowLong Form1.hWnd, GWL_EXSTYLE, windowLngReturn Or WS_EX_LAYERED
     
 '    If rDzOrderMode = "0" Then
 '        SetWindowPos dock.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE
@@ -431,14 +431,21 @@ Public Sub createGDIStructures()
     On Error GoTo createGDIStructures_Error
 
     ' Set the bitmap characteristics for use in SetDIBits later
-    With bmpInfo.bmpHeader
-        .biSize = Len(bmpInfo.bmpHeader)
-        .biWidth = windowSize.X
-        .biHeight = -windowSize.Y
-        .biPlanes = 1
-        .biBitCount = 32
-        .biSizeImage = .biWidth * .biHeight * (.biBitCount / 8)
-    End With
+'    With bmpInfo.bmpHeader
+'        .biSize = Len(bmpInfo.bmpHeader)
+'        .biWidth = windowSize.X
+'        .biHeight = -windowSize.Y
+'        .biPlanes = 1
+'        .biBitCount = 32
+'        .biSizeImage = .biWidth * .biHeight * (.biBitCount / 8)
+'    End With
+    
+    bmpInfo.bmpHeader.biSize = Len(bmpInfo.bmpHeader)
+    bmpInfo.bmpHeader.biBitCount = 32
+    bmpInfo.bmpHeader.biHeight = Form1.ScaleHeight
+    bmpInfo.bmpHeader.biWidth = screenWidthPixels
+    bmpInfo.bmpHeader.biPlanes = 1
+    bmpInfo.bmpHeader.biSizeImage = bmpInfo.bmpHeader.biWidth * bmpInfo.bmpHeader.biHeight * (bmpInfo.bmpHeader.biBitCount / 8)
     
     ' A device context is a generalized rendering abstraction. It serves as a proxy between your rendering code and the output device.
     ' It allows you to use the same rendering code regardless of the destination; the low-level details are handled for you,
@@ -483,7 +490,7 @@ Public Sub createNewGDIPBitmap()
     hOldBmp = SelectObject(dcMemory, hBmpMemory) ' releases memory used by any open GDI handle  in SD used within createNewGDIPBitmap
     
     ' Creates a GDIP graphic object and provides a pointer 'gdipFullScreenBitmap' using a handle to the bitmap graphic section assigned to the device context
-    Call GdipCreateFromHDC(thisHDC, gdipFullScreenBitmap) ' dcMemory used to draw upon and place on screen using UpdateLayeredWindow later
+    Call GdipCreateFromHDC(dcMemory, gdipFullScreenBitmap) ' dcMemory used to draw upon and place on screen using UpdateLayeredWindow later
     
     On Error GoTo 0
     Exit Sub
