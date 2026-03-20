@@ -11,17 +11,15 @@ At the moment I am getting the program to operate with a combination of GDI & GD
 
 but the idea is to move away from low level Windows specific frameworks and attempt the same using multi-platform capable graphics framework and using TwinBasic's native controls in the hope that soon these will be able to achieve what I am looking for in order to be able to create layered transparent image apps with events, properties and controlled click-through - https://github.com/twinbasic/twinbasic/issues/2167
 
-![picBoTrans002](https://github.com/user-attachments/assets/bb179608-3331-4488-aa6f-09b1f69198d9)
+<img width="1026" height="900" alt="cpu-XML-GDIP" src="https://github.com/user-attachments/assets/e089bdaa-f48a-4f25-b4a7-2c138339b8b6" />
 
-When run in TwinBasic, the two image boxes are loaded using PNGs as TwinBasic has PNG support out of the box and the result is a great improvement with the images nicely layered on top of each other, the background being completely transparent. In addition the picbox on the left displays the PNG perfectly when painted with Cairo. Note the imageboxes do not have a .hDC so we cannot use Cairo to write a PNG to an imagebox, instead we use TwinBasic's native PNG support.
+Image above shows good progress replicating an existing RichClient program in looks (if not yet functionality), success in placing a 'widget' comprising multiple images onto the desktop using transparent PNGs, the size and location details read from a PSD file via an extracted XML descriptor, similarly extracted images are then read into a dictionary/imagelist, then placed lightning-fast onto the display using GDI+
 
-![picBoTrans001](https://github.com/user-attachments/assets/24e2f986-9514-4486-9e0c-8542b8a0a57f)
-
-A double-click on each image will cause a msgbox to appear with the clicked-control named so it will become clear which transparent area corresponds to which control.
+Working with GDI+ as a proof of concept until the Cairo elements are working as efficiently as GDI+
 
 The CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to this new Cairo implementation will not help much with a 64bit implementation. The code to the Cairo wrapper is available though and in time should be compileable to a 64bit version using TwinBasic.
 
 Status:
 
-BASIC. Puts an image on screen using GDI+ with a right click menu on an invisible VB6 form, not much else. Currently building an image class that will encapsulate the properties of an image, allowing multiple images to be placed on the form.
-' 
+BASIC. Puts multiple images on screen using GDI+ with a right click menu on an invisible VB6 form using an image class that encapsulates the properties of each image. Next stage adding event handling to each layer next then hit-testing and click-through through transparent areas to layers below
+ 
