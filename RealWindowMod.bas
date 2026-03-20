@@ -3,7 +3,7 @@ Attribute VB_Name = "modWindowAPI"
 ' Module    : RealWindowMod
 ' Author    : Andrew Heinlein [Mouse]
 ' Date      : 11/03/2026
-' Purpose   :
+' Purpose   : create a custom window
 '---------------------------------------------------------------------------------------
 
 Option Explicit

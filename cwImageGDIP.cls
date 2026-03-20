@@ -42,6 +42,13 @@ Private mTooltip As String
 Private mBitmap As Long
 
 
+' public mouseDown event for an object of this class
+' VB6 only raises MouseDown/Move/Up automatically for windowed controls it owns.
+
+Public Event MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Public Event MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : Class_Initialize
 ' Author    : beededea
@@ -76,11 +83,34 @@ Class_Initialize_Error:
 
      MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Initialize of Class Module cwMainImage"
 End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : Class_Terminate
+' Author    : beededea
+' Date      : 04/01/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Private Sub Class_Terminate()
+    On Error GoTo Class_Terminate_Error
+      
+    ' The GDIP graphics are now deleted
+    Call GdipDeleteGraphics(Bitmap)
+    Call GdipDeleteGraphics(mBitmap)
+    
+    On Error GoTo 0
+    Exit Sub
+
+Class_Terminate_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Terminate of Class Module cTBImageList"
+End Sub
 '---------------------------------------------------------------------------------------
 ' Property  : Index
 ' Author    : beededea
 ' Date      : 20/11/2025
-' Purpose   :
+' Purpose   : property to store an index that may be useful (not a control array)
 '---------------------------------------------------------------------------------------
 '
 Public Property Get Index() As Integer
@@ -125,7 +155,7 @@ End Property
 ' Property  : Left
 ' Author    : beededea
 ' Date      : 20/11/2025
-' Purpose   :
+' Purpose   : The image's X/Hoffset position
 '---------------------------------------------------------------------------------------
 '
 Public Property Get Left() As Long
@@ -158,7 +188,7 @@ Public Property Let Left(ByVal newValue As Long)
     
     End If
 
-    Paint
+
 
 
    On Error GoTo 0
@@ -175,7 +205,7 @@ End Property
 ' Property  : Top
 ' Author    : beededea
 ' Date      : 20/11/2025
-' Purpose   :
+' Purpose   : The image's Y/Voffset position
 '---------------------------------------------------------------------------------------
 '
 Public Property Get Top() As Long
@@ -208,7 +238,7 @@ Public Property Let Top(ByVal newValue As Long)
     
     End If
     
-    Paint
+
 
    On Error GoTo 0
    Exit Property
@@ -256,7 +286,7 @@ Public Property Let Enabled(ByVal newValue As Boolean)
     
     End If
     
-    Paint
+
 
    On Error GoTo 0
    Exit Property
@@ -400,7 +430,7 @@ Public Property Let Opacity(ByVal newValue As Long)
     
     End If
     
-    Paint
+
 
    On Error GoTo 0
    Exit Property
@@ -444,11 +474,7 @@ Public Property Let Name(ByVal newValue As String)
 
     If mName <> newValue Then mName = newValue Else Exit Property
     
-    If mName = True Then
-    
-    Else
-    
-    End If
+
 
    On Error GoTo 0
    Exit Property
@@ -512,7 +538,7 @@ Public Property Let Visible(ByVal newValue As Boolean)
 
     If mVisible <> newValue Then mVisible = newValue Else Exit Property
     
-    Paint
+
 
    On Error GoTo 0
    Exit Property
@@ -557,7 +583,7 @@ Public Property Let ScaleSize(ByVal newValue As Single)
 
     If mScaleSize <> newValue Then mScaleSize = newValue Else Exit Property
     
-    Paint
+
 
    On Error GoTo 0
    Exit Property
@@ -599,7 +625,7 @@ Public Property Let Rotate(ByVal newValue As Single)
 
     If mRotate <> newValue Then mRotate = newValue Else Exit Property
     
-    Paint
+
 
    On Error GoTo 0
    Exit Property
@@ -641,7 +667,7 @@ Public Property Let Tooltip(ByVal newValue As String)
 
     If mTooltip <> newValue Then mTooltip = newValue Else Exit Property
     
-    Paint
+
 
    On Error GoTo 0
    Exit Property
@@ -652,6 +678,132 @@ TooltipLet_Error:
 End Property
 
 
+'---------------------------------------------------------------------------------------
+' Property  : Bitmap
+' Author    : beededea
+' Date      : 20/11/2025
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Property Get Bitmap() As Long
+   On Error GoTo BitmapGet_Error
+
+   Bitmap = mBitmap
+
+   On Error GoTo 0
+   Exit Property
+
+BitmapGet_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Bitmap of Class Module cwImage"
+End Property
+'---------------------------------------------------------------------------------------
+' Property  : Bitmap
+' Author    : beededea
+' Date      : 20/11/2025
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Property Let Bitmap(ByVal newValue As Long)
+   On Error GoTo BitmapLet_Error
+
+    If mBitmap <> newValue Then mBitmap = newValue Else Exit Property
+    
+   On Error GoTo 0
+   Exit Property
+
+BitmapLet_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Bitmap of Class Module cwImage"
+End Property
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : RaiseMouseDown
+' Author    : beededea
+' Date      : 19/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Friend Sub RaiseMouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo RaiseMouseDown_Error
+
+    RaiseEvent MouseDown(Button, Shift, x, y)
+
+    On Error GoTo 0
+    Exit Sub
+
+RaiseMouseDown_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure RaiseMouseDown of Class Module cfImageGDIP"
+End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : RaiseMouseMove
+' Author    : beededea
+' Date      : 19/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Friend Sub RaiseMouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo RaiseMouseMove_Error
+
+    RaiseEvent MouseMove(Button, Shift, x, y)
+
+    On Error GoTo 0
+    Exit Sub
+
+RaiseMouseMove_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure RaiseMouseMove of Class Module cfImageGDIP"
+End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : HitTest
+' Author    : beededea
+' Date      : 19/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Function HitTest(ByVal x As Long, ByVal y As Long) As Boolean
+    On Error GoTo HitTest_Error
+
+    If Not mVisible Then Exit Function
+    If Not mEnabled Then Exit Function
+    
+    If x >= mLeft And x <= (mLeft + mWidth) _
+    And y >= mTop And y <= (mTop + mHeight) Then
+        HitTest = True
+    End If
+
+    On Error GoTo 0
+    Exit Function
+
+HitTest_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure HitTest of Class Module cfImageGDIP"
+End Function
+
+'---------------------------------------------------------------------------------------
+' Procedure : ScreenToLocal
+' Author    : beededea
+' Date      : 19/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Sub ScreenToLocal(ByVal x As Long, ByVal y As Long, ByRef lx As Single, ByRef ly As Single)
+    On Error GoTo ScreenToLocal_Error
+
+    lx = x - mLeft
+    ly = y - mTop
+
+    On Error GoTo 0
+    Exit Sub
+
+ScreenToLocal_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure ScreenToLocal of Class Module cfImageGDIP"
+End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : W_Paint
@@ -661,16 +813,12 @@ End Property
 '---------------------------------------------------------------------------------------
 '
 Private Sub Paint()
-' ByVal xAbs As Single, ByVal yAbs As Single, ByVal dx_Aligned As Single, ByVal dy_Aligned As Single, UserObj As Object)
-
-    Dim someOpacity As Double: someOpacity = 0
    
     On Error GoTo W_Paint_Error
+        
+    'draws the selected image bitmap onto the GDIP full screen
+    Call GdipDrawImageRectI(gdipFullScreenBitmap, mBitmap, mLeft, mTop, mWidth, mHeight)
     
-    'someOpacity = (Val(mThisOpacity) / 100) * 0.75
-    
-    'Call updateScreenUsingGDIPBitmap
-
    On Error GoTo 0
    Exit Sub
 

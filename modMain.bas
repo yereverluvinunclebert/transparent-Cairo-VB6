@@ -6,10 +6,10 @@ Attribute VB_Name = "modMain"
 ' Purpose   : Test program to write images to a transparent form using Cairo and GDI+
 '---------------------------------------------------------------------------------------
 
-' main              The main program entry point
-' initiateAPIWindow      The process that does the majority of the Window initialisation determining screen details, initiating the window.
-' createAPIWindow   The main process that does the majority of the Window initialisation and other GDI+ configuration
-' mainWndProc       The routine where all the Cairo and GDI+ drawing is done, intercepting messages such as WM_PAINT
+' form1.form_load       The main program entry point
+' initiateAPIWindow     The process that does the majority of the Window initialisation determining screen details, initiating the window.
+' createAPIWindow       The main process that does the majority of the Window initialisation and other GDI+ configuration
+' mainWndProc           The routine where all the Cairo and GDI+ drawing is done, intercepting messages such as WM_PAINT
 
 ' The Problem:
 ' ============
@@ -27,7 +27,8 @@ Attribute VB_Name = "modMain"
 ' AlphaBlend() performs proper per-pixel alpha blending with the window’s background.
 
 ' B.
-' Do the whole thing using GDI+ as a demonstration of capability - (tested and working)
+' Do the whole thing using GDI+ as a demonstration of overall capability - (tested and working) -
+' - when working slot in the Cairo code
 
 ' Status:
 ' =======
@@ -41,7 +42,7 @@ Attribute VB_Name = "modMain"
 ' We have added the capability to store and extract an std picture image from a dictionary (CB's dict) and with my RC collection wrapper (tested and working)
 ' We have added bitmap capability to my RC collection wrapper (tested and working)
 ' Added a menu to allow easy program closing.
-' Added basic image class to take an image
+' Added basic image class to take an image (wip)
 
 
 ' The Cairo function needs to be hacked to move the file load to the config
@@ -114,12 +115,13 @@ Attribute VB_Name = "modMain"
 '#End If
 
 
-
-
-
 Option Explicit
 
+'Public thisGDIPimage As New cfImageGDIP
 
+' class objects instantiated
+Public fMain As New cfMain
+Public thisGDIPimage As New cfImageGDIP
 
   
 '---------------------------------------------------------------------------------------
@@ -160,60 +162,108 @@ Option Explicit
 ' Procedure : vbFormSetup
 ' Author    : beededea
 ' Date      : 16/03/2026
-' Purpose   : NOT used - see Form_Load
+' Purpose   : Used by VB6 form1.Form_Load or user-created custom form via Main
+'---------------------------------------------------------------------------------------
+Public Sub vbFormSetup()
+
+    Dim sWidgetOpacity As String: sWidgetOpacity = vbNullString
+    Dim sWidgetZOrder As String: sWidgetZOrder = vbNullString
+
+    On Error GoTo vbFormSetup_Error
+
+    hVBFormHwnd = Form1.hWnd
+    thisHDC = Form1.hDC
+    sWidgetOpacity = "100"
+    sWidgetZOrder = "2"
+    
+    ' check the selected monitor properties and determine the number of twips per pixel for this screen
+    Call monitorProperties
+    
+    ' resolve VB6 sizing width bug
+    Call resolveVB6SizeBug ' requires MonitorProperties to be in place above to assign a value to screenTwipsPerPixelY
+    
+    'set the main form upon which the dock resides to the size of the whole monitor, has to be done in twips
+    Call setMainFormDimensions
+    
+    ' Initialises GDI Plus
+    Call initialiseGDIPStartup
+    
+    ' update the window with the appropriately sized and qualified image
+    Call setWindowCharacteristics(sWidgetZOrder, sWidgetOpacity)
+    
+    ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
+    Call createGDIStructures
+    
+    ' add images to image list
+    Call addImagesToImageList
+              
+    'creates a bitmap section in memory that applications can write to directly
+    Call createNewGDIPBitmap ' clears the whole previously drawn image section and any animation can continue
+    
+    ' now we paint the images using GDI+ extracting the image from a pre-loaded dictionary, in this case Christian Buse's VBA dictionary replacement
+    Call addImagesToFullScreenDisplay
+    
+    'load the XML image data (previously extracted directly from the PSD)
+    Call InitialiseImageWidgetsFromXML
+
+    ' Calls UpdateLayeredWindow with created GDI bitmap
+    Call updateScreenUsingGDIPBitmap
+    
+    ' now we paint the image using Cairo, (unfinished) Cairo HAS to load from file as the process to get Cairo to load from a collection is rather tricky using VB6 (Cairo requires a callback as input)
+    'Call drawAlphaPngCairo(GetDC(0&), hVBFormHwnd, App.Path & "\player.png", 50, 350)
+
+    On Error GoTo 0
+    Exit Sub
+
+vbFormSetup_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure vbFormSetup of Module modMain"
+
+End Sub
+
+    
+'---------------------------------------------------------------------------------------
+' Procedure : addImagesToFullScreenDisplay
+' Author    : beededea
+' Date      : 18/03/2026
+' Purpose   : paint the images using GDI+ extracting the image from a pre-loaded dictionary, in this case Christian Buse's VBA dictionary replacement
 '---------------------------------------------------------------------------------------
 '
-'Private Sub vbFormSetup()
-'
-'    On Error GoTo vbFormSetup_Error
-'
-'    thisHDC = GetDC(0&)  ' <- writing to the desktop dc fully transparent - overwritten shortly after
-'    hVBFormHwnd = Form1.hWnd
-'
-'    'thisHDC = Form1.hDC
-'
-'    ' check the selected monitor properties and determine the number of twips per pixel for this screen
-'    Call monitorProperties
-'
-'    ' resolve VB6 sizing width bug
-'    Call resolveVB6SizeBug ' requires MonitorProperties to be in place above to assign a value to screenTwipsPerPixelY
-'
-'    'set the main form upon which the dock resides to the size of the whole monitor, has to be done in twips
-'    Call setMainFormDimensions
-'
-'    ' Initialises GDI Plus
-'    Call initialiseGDIPStartup
-'
-'    ' add image to image list
-'    Call addImagesToImageList
-'
-'    imageBitmap = readImageFromDictionary("tardis")
-'
-'    ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
-'    Call createGDIStructures
-'
-'    'creates a bitmap section in memory that applications can write to directly
-'    Call createNewGDIPBitmap
-'
-'    ' update the window with the appropriately sized and qualified image
-'    Call setWindowCharacteristics ' This is the function that actually changes the display, called by animate timers, must also be here
-'
-'
-''    Call setUpGDIP
-'
-''    Call configWindowParams
-'
-'    'Form1.Show
-'
-'    On Error GoTo 0
-'    Exit Sub
-'
-'vbFormSetup_Error:
-'
-'     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure vbFormSetup of Module modMain"
-'
-'End Sub
+Private Sub addImagesToFullScreenDisplay()
+    
+    On Error GoTo addImagesToFullScreenDisplay_Error
 
+    With thisGDIPimage
+        .Bitmap = readImageFromDictionary("tardis")
+        .Left = 750
+        .Top = 250
+        .Width = 200
+        .height = 200
+        .Name = "tardis"
+        .Opacity = 100
+        .Tooltip = "this image is the Tardis image"
+        .Refresh
+    End With
+    
+    With thisGDIPimage
+        .Bitmap = readImageFromDictionary("player")
+        .Left = 500
+        .Top = 250
+        .Width = 200
+        .height = 200
+        .Name = "player"
+        .Opacity = 100
+        .Tooltip = "this image is the Player image"
+        .Refresh
+    End With
+
+    On Error GoTo 0
+    Exit Sub
+
+addImagesToFullScreenDisplay_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addImagesToFullScreenDisplay of Module modMain"
+End Sub
     
     
 '---------------------------------------------------------------------------------------
@@ -285,6 +335,7 @@ Public Sub addImagesToImageList()
     On Error GoTo addImagesToImageList_Error
 
     thisImageList.AddImage "tardis", App.Path & "\tardis.png"
+    thisImageList.AddImage "player", App.Path & "\player.png"
     
     On Error GoTo 0
     Exit Sub
@@ -306,7 +357,7 @@ Public Sub setMainFormDimensions()
     '
     On Error GoTo setMainFormDimensions_Error
 
-    Form1.Height = screenHeightTwips
+    Form1.height = screenHeightTwips
     Form1.Width = screenWidthTwips
 
     On Error GoTo 0
@@ -397,12 +448,12 @@ Public Sub setWindowCharacteristics(ByVal rDzOrderMode As String, ByVal thisOpac
     End If
     
     ' point structure that specifies the location of the layer updated in UpdateLayeredWindow
-    apiPoint.X = 0
-    apiPoint.Y = 0
+    apiPoint.x = 0
+    apiPoint.y = 0
     
     ' point structure that specifies the size of the window in pixels
-    windowSize.X = screenWidthPixels ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
-    windowSize.Y = screenHeightPixels  ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
+    windowSize.x = screenWidthPixels ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
+    windowSize.y = screenHeightPixels  ' .59 DAEB 26/04/2021 frmMain.frm changed to use pixels alone, removed all unnecessary twip conversion
     
     ' blending characteristics for opacity
     funcBlend32bpp.AlphaFormat = AC_SRC_ALPHA
@@ -503,15 +554,12 @@ End Sub
 ' Purpose   : This utility displays using GDI+, one of several image bitmaps extracted from a dictionary collection by key.
 '---------------------------------------------------------------------------------------
 '
-Public Function updateDisplayFromDictionary(ByVal Key As String, Optional Left As Long = 0, Optional Top As Long = 0, Optional Width As Long = -1, Optional Height As Long = -1) As Boolean
+Public Function updateDisplayFromDictionary(ByVal Key As String, Optional Left As Long = 0, Optional Top As Long = 0, Optional Width As Long = -1, Optional height As Long = -1) As Boolean
 
     On Error GoTo updateDisplayFromDictionary_Error
-
-    ' get the stored image from the collection
-    imageBitmap = readImageFromDictionary("tardis")
     
     'draws the selected image bitmap onto the GDIP full screen
-    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, Left, Top, Width, Height)
+    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, Left, Top, Width, height)
     
     ' The GDIP graphics are now deleted
     Call GdipDeleteGraphics(imageBitmap)
@@ -818,9 +866,9 @@ End Function
 ' Purpose   : draw a PNG image with a transparent background using Cairo only, no GDI+
 '---------------------------------------------------------------------------------------
 '
-Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hWnd As Long, ByVal sPngPath As String, ByVal X As Long, ByVal Y As Long)
+Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hWnd As Long, ByVal sPngPath As String, ByVal x As Long, ByVal y As Long)
     Dim Width As Long
-    Dim Height As Long
+    Dim height As Long
     
     Dim surfImg As Long, cr As Long, surfPng As Long
     Dim dataPtr As Long
@@ -837,7 +885,7 @@ Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hWnd As Long, ByVal sPngPath
     If surfPng = 0 Then Exit Sub
 
     Width = cairo_image_surface_get_width(surfPng)
-    Height = cairo_image_surface_get_height(surfPng)
+    height = cairo_image_surface_get_height(surfPng)
 
     ' Draw the PNG on an intermediate offscreen ARGB Cairo surface that supports alpha (offscreen buffer).
 
