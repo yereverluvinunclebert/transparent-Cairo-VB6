@@ -21,5 +21,9 @@ The CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to thi
 
 Status:
 
-BASIC. Puts multiple images on screen using GDI+ with a right click menu on an invisible VB6 form using an image class that encapsulates the properties of each image. Next stage adding event handling to each layer next then hit-testing and click-through through transparent areas to layers below
+BASIC test program - Puts multiple images on screen using GDI+ with a right click menu on an invisible VB6 form using an image class that encapsulates the properties of each image. 
+
+Currently adding event handling to each layer comprising the 'desktop widget'.
+Next will be hit-testing and click-through through transparent areas to layers below.
+
  
