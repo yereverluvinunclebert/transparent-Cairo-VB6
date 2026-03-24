@@ -28,34 +28,41 @@ Attribute VB_Name = "modMain"
 
 ' B.
 ' Do the whole thing using GDI+ as a demonstration of overall capability - (tested and working) -
-' - when working slot in the Cairo code
+' - when working later, I will slot in the Cairo code
 
 ' Status:
 ' =======
-
-' I have a partially working Cairo example that can write (with defects) to the DC of a VB6 form using the cyan transparency trick or perfectly to the DC of the main (0) desktop window but it only lasts for a second or so before refreshing.
-' resulting in a heavily flickering image - but it works for that second!
 
 ' We have a version that now places a Cairo image to the DC of a solid white background of user-created form using createWindowEx - (tested and working)
 ' We have added the necessary code to place an image on a solid VB6 form using GDI+ (tested and working)
 ' We have added the necessary code to place a stable image on a fully transparent form using GDI+ (tested and working)
 ' We have added the capability to store and extract an std picture image from a dictionary (CB's dict) and with my RC collection wrapper (tested and working)
 ' We have added bitmap capability to my RC collection wrapper (tested and working)
-' Added a menu to allow easy program closing.
-' Added basic image class to take an image (wip)
-
-
-' The Cairo function needs to be hacked to move the file load to the config
-
-' We have some sample code in C++ for setting the background colour of a user-created window, but it isn't easy, this may need to be converted, however
-' we do not use this method in SteamyDock, we make the window fullscreen and transparent and then write to the screen context
-
+' Added a menu to allow easy program closing (tested and working)
+' Added an image class to take an image bitmap and other properties to draw on the screen (tested and working)
+' Added routine to read image properties from parsed XML (tested and working)
+' Added a load of each image object to the screen (tested and working)
 
 ' Tasks?
 ' ======
 
-' using a user-created form, see if we can make our GDI+ config write a PNG image to the window, do we need to do this as the VB6 form is sufficient?
-'   ' we do NOT need to do this at the moment, we can test with the VB6 form, only migrating to the user-created form for testing if we can't get the Cairo version working.
+' Add the event handling for each image object
+' Add the hit test for each layer
+' Add the pixel test to see if a layer is transparent and allow click-through
+' Add the top layer image list for images that do not require responses to click events and allow full click-through.
+
+' create widget class,
+
+' user created form
+' user created timers
+
+' Cairo
+
+' The Cairo function needs to be hacked to move the file load to the startup
+
+' in Steamydock if we can replace the VB6 form that is made invisible with a user-created window as per APIwindow, then place the GDI+ created icons onto it then we have materially solved the capability to create
+' programming 'widgets' on a user-created transparent window. Why do we need to create the user-created window? for testing if for some reason we can't get the Cairo version working.
+    ' custom form is
 
 ' The recommended call to cairo_image_surface_create does not work using other cairo DLLs, placing nothing on any hDC
 ' When I use vbCairo cairo_win32_surface_create (thisHDC) then a transparent image is placed directly on the device context as required
@@ -76,14 +83,6 @@ Attribute VB_Name = "modMain"
 ' It might be the method I use with own-created window.
 
 ' investigate operator_clear
-
-' Next Step:
-' ==========
-
-' in Steamydock if we can replace the VB6 form that is made invisible with a user-created window as per APIwindow, then place the GDI+ created icons onto it then we have materially solved the capability to create
-' programming 'widgets' on a user-created transparent window. Why do we need to create the user-created window?
-
-' When working we could get the reading the PNG data from an array operational.
 
 ' so far I stalled on reading the PNG data from a byte array from a dictionary using VB6 as the cairo_image_surface_create_from_png_stream function requires population via a callback
 ' it CAN be done using TB callbacks but is not essential to have this within the VB6 program, it is just a proof of concept. To continue, this will eventually be a single image widget demo.
@@ -117,11 +116,9 @@ Attribute VB_Name = "modMain"
 
 Option Explicit
 
-'Public thisGDIPimage As New cfImageGDIP
-
 ' class objects instantiated
 Public fMain As New cfMain
-Public thisGDIPimage As New cfImageGDIP
+'Public thisGDIPimage As cfImageGDIP
 
   
 '---------------------------------------------------------------------------------------
@@ -158,112 +155,9 @@ Public thisGDIPimage As New cfImageGDIP
 '     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Main of Module modMain"
 'End Sub
 
-'---------------------------------------------------------------------------------------
-' Procedure : vbFormSetup
-' Author    : beededea
-' Date      : 16/03/2026
-' Purpose   : Used by VB6 form1.Form_Load or user-created custom form via Main
-'---------------------------------------------------------------------------------------
-Public Sub vbFormSetup()
 
-    Dim sWidgetOpacity As String: sWidgetOpacity = vbNullString
-    Dim sWidgetZOrder As String: sWidgetZOrder = vbNullString
 
-    On Error GoTo vbFormSetup_Error
 
-    hVBFormHwnd = Form1.hWnd
-    thisHDC = Form1.hDC
-    sWidgetOpacity = "100"
-    sWidgetZOrder = "2"
-    
-    ' check the selected monitor properties and determine the number of twips per pixel for this screen
-    Call monitorProperties
-    
-    ' resolve VB6 sizing width bug
-    Call resolveVB6SizeBug ' requires MonitorProperties to be in place above to assign a value to screenTwipsPerPixelY
-    
-    'set the main form upon which the dock resides to the size of the whole monitor, has to be done in twips
-    Call setMainFormDimensions
-    
-    ' Initialises GDI Plus
-    Call initialiseGDIPStartup
-    
-    ' update the window with the appropriately sized and qualified image
-    Call setWindowCharacteristics(sWidgetZOrder, sWidgetOpacity)
-    
-    ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
-    Call createGDIStructures
-    
-    ' add images to image list
-    Call addImagesToImageList
-              
-    'creates a bitmap section in memory that applications can write to directly
-    Call createNewGDIPBitmap ' clears the whole previously drawn image section and any animation can continue
-    
-    ' now we paint the images using GDI+ extracting the image from a pre-loaded dictionary, in this case Christian Buse's VBA dictionary replacement
-    Call addImagesToFullScreenDisplay
-    
-    'load the XML image data (previously extracted directly from the PSD)
-    Call InitialiseImageWidgetsFromXML
-
-    ' Calls UpdateLayeredWindow with created GDI bitmap
-    Call updateScreenUsingGDIPBitmap
-    
-    ' now we paint the image using Cairo, (unfinished) Cairo HAS to load from file as the process to get Cairo to load from a collection is rather tricky using VB6 (Cairo requires a callback as input)
-    'Call drawAlphaPngCairo(GetDC(0&), hVBFormHwnd, App.Path & "\player.png", 50, 350)
-
-    On Error GoTo 0
-    Exit Sub
-
-vbFormSetup_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure vbFormSetup of Module modMain"
-
-End Sub
-
-    
-'---------------------------------------------------------------------------------------
-' Procedure : addImagesToFullScreenDisplay
-' Author    : beededea
-' Date      : 18/03/2026
-' Purpose   : paint the images using GDI+ extracting the image from a pre-loaded dictionary, in this case Christian Buse's VBA dictionary replacement
-'---------------------------------------------------------------------------------------
-'
-Private Sub addImagesToFullScreenDisplay()
-    
-    On Error GoTo addImagesToFullScreenDisplay_Error
-
-    With thisGDIPimage
-        .Bitmap = readImageFromDictionary("tardis")
-        .Left = 750
-        .Top = 250
-        .Width = 200
-        .height = 200
-        .Name = "tardis"
-        .Opacity = 100
-        .Tooltip = "this image is the Tardis image"
-        .Refresh
-    End With
-    
-    With thisGDIPimage
-        .Bitmap = readImageFromDictionary("player")
-        .Left = 500
-        .Top = 250
-        .Width = 200
-        .height = 200
-        .Name = "player"
-        .Opacity = 100
-        .Tooltip = "this image is the Player image"
-        .Refresh
-    End With
-
-    On Error GoTo 0
-    Exit Sub
-
-addImagesToFullScreenDisplay_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addImagesToFullScreenDisplay of Module modMain"
-End Sub
     
     
 '---------------------------------------------------------------------------------------
@@ -324,15 +218,15 @@ End Sub
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : addImagesToImageList
+' Procedure : addSingleImagesToImageList
 ' Author    : beededea
 ' Date      : 13/03/2026
-' Purpose   : addition of the used images to the GDIP imageList dictionary
+' Purpose   : addition of any single images required that are not within the PSD-derived XML
 '---------------------------------------------------------------------------------------
 '
-Public Sub addImagesToImageList()
+Public Sub addSingleImagesToImageList()
     
-    On Error GoTo addImagesToImageList_Error
+    On Error GoTo addSingleImagesToImageList_Error
 
     thisImageList.AddImage "tardis", App.Path & "\tardis.png"
     thisImageList.AddImage "player", App.Path & "\player.png"
@@ -340,9 +234,9 @@ Public Sub addImagesToImageList()
     On Error GoTo 0
     Exit Sub
 
-addImagesToImageList_Error:
+addSingleImagesToImageList_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addImagesToImageList of Module modMain"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addSingleImagesToImageList of Module modMain"
 
 End Sub
 
@@ -436,15 +330,15 @@ Public Sub setWindowCharacteristics(ByVal rDzOrderMode As String, ByVal thisOpac
     On Error GoTo setWindowCharacteristics_Error
     
     'set the transparency of the underlying form with click through
-    windowLngReturn = GetWindowLong(Form1.hWnd, GWL_EXSTYLE)
-    SetWindowLong Form1.hWnd, GWL_EXSTYLE, windowLngReturn Or WS_EX_LAYERED
+    windowLngReturn = GetWindowLong(Form1.hwnd, GWL_EXSTYLE)
+    SetWindowLong Form1.hwnd, GWL_EXSTYLE, windowLngReturn Or WS_EX_LAYERED
     
     If rDzOrderMode = "0" Then
-        SetWindowPos Form1.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE
+        SetWindowPos Form1.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE
     ElseIf rDzOrderMode = "1" Then
-        SetWindowPos Form1.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE
+        SetWindowPos Form1.hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE
     ElseIf rDzOrderMode = "2" Then
-        SetWindowPos Form1.hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE
+        SetWindowPos Form1.hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE
     End If
     
     ' point structure that specifies the location of the layer updated in UpdateLayeredWindow
@@ -657,7 +551,7 @@ Public Function fTwipsPerPixelX() As Single
     Const LOGPIXELSX = 88              '  Logical pixels/inch in X
     Const POINTS_PER_INCH As Long = 72 ' A point is defined as 1/72 inches.
     Const TWIPS_PER_POINT As Long = 20 ' Also, by definition.
-    '
+    
     On Error GoTo fTwipsPerPixelX_Error
     
     ' 23/01/2021 .01 monitorModule.bas DAEB added if then else if you can't get device context
@@ -866,7 +760,7 @@ End Function
 ' Purpose   : draw a PNG image with a transparent background using Cairo only, no GDI+
 '---------------------------------------------------------------------------------------
 '
-Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hWnd As Long, ByVal sPngPath As String, ByVal x As Long, ByVal y As Long)
+Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hwnd As Long, ByVal sPngPath As String, ByVal x As Long, ByVal y As Long)
     Dim Width As Long
     Dim height As Long
     
@@ -1000,30 +894,45 @@ End Sub
 
 
 
-'---------------------------------------------------------------------------------------
-' Procedure : drawAlphaPngGDIP
-' Author    : beededea
-' Date      : 31/10/2025
-' Purpose   : draw a PNG image with a transparent background using GDI+
-'---------------------------------------------------------------------------------------
-'
-'Public Sub drawAlphaPngGDIP(ByVal X As Long, ByVal Y As Long, CX As Long, CY As Long)
-'
-'    On Error GoTo drawAlphaPngGDIP_Error
-'
-'    imageBitmap = readImageFromDictionary("tardis")
-'
-'     'draws a icon bitmap onto the GDIP full screen
-'    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, X, Y, CX, CY)  ' shrinks the bitmap into the image object
-'
-'    ' Calls UpdateLayeredWindow with created GDI bitmap
-'    Call updateScreenUsingGDIPBitmap
-'
-'    On Error GoTo 0
-'    Exit Sub
-'
-'drawAlphaPngGDIP_Error:
-'
-'     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure drawAlphaPngGDIP of Form frmMain"
-'End Sub
 
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : thisGDIPimage_MouseDown
+' Author    : beededea
+' Date      : 21/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Private Sub thisGDIPimage_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo thisGDIPimage_MouseDown_Error
+
+    Debug.Print "MouseDown", x, y
+
+    On Error GoTo 0
+    Exit Sub
+
+thisGDIPimage_MouseDown_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure thisGDIPimage_MouseDown of Module modMain"
+End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : thisGDIPimage_MouseMove
+' Author    : beededea
+' Date      : 21/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Private Sub thisGDIPimage_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo thisGDIPimage_MouseMove_Error
+
+    Debug.Print "MouseMove", x, y
+
+    On Error GoTo 0
+    Exit Sub
+
+thisGDIPimage_MouseMove_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure thisGDIPimage_MouseMove of Module modMain"
+End Sub

@@ -13,5 +13,4 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Public WithEvents thisGDIPimage As cfImageGDIP
-Attribute thisGDIPimage.VB_VarHelpID = -1
+

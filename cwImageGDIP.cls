@@ -40,7 +40,8 @@ Private mScaleSize As Single
 Private mRotate As Single
 Private mTooltip As String
 Private mBitmap As Long
-
+Private mRotationPointX As Long
+Private mRotationPointY As Long
 
 ' public mouseDown event for an object of this class
 ' VB6 only raises MouseDown/Move/Up automatically for windowed controls it owns.
@@ -304,10 +305,10 @@ End Property
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
-Public Property Get Height() As Long
+Public Property Get height() As Long
    On Error GoTo HeightGet_Error
 
-   Height = mHeight
+   height = mHeight
 
    On Error GoTo 0
    Exit Property
@@ -323,7 +324,7 @@ End Property
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
-Public Property Let Height(ByVal newValue As Long)
+Public Property Let height(ByVal newValue As Long)
    On Error GoTo HeightLet_Error
 
     If mHeight <> newValue Then mHeight = newValue Else Exit Property
@@ -667,8 +668,6 @@ Public Property Let Tooltip(ByVal newValue As String)
 
     If mTooltip <> newValue Then mTooltip = newValue Else Exit Property
     
-
-
    On Error GoTo 0
    Exit Property
 
@@ -719,9 +718,116 @@ End Property
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : RaiseMouseDown
+' Property  : RotationPointX
+' Author    : beededea
+' Date      : 20/11/2025
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Property Get RotationPointX() As Long
+   On Error GoTo RotationPointXGet_Error
+
+   RotationPointX = mRotationPointX
+
+   On Error GoTo 0
+   Exit Property
+
+RotationPointXGet_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cwImage"
+End Property
+'---------------------------------------------------------------------------------------
+' Property  : RotationPointX
+' Author    : beededea
+' Date      : 20/11/2025
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Property Let RotationPointX(ByVal newValue As Long)
+   On Error GoTo RotationPointXLet_Error
+
+    If mRotationPointX <> newValue Then mRotationPointX = newValue Else Exit Property
+    
+   On Error GoTo 0
+   Exit Property
+
+RotationPointXLet_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cwImage"
+End Property
+
+
+'---------------------------------------------------------------------------------------
+' Property  : RotationPointY
+' Author    : beededea
+' Date      : 20/11/2025
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Property Get RotationPointY() As Long
+   On Error GoTo RotationPointYGet_Error
+
+   RotationPointY = mRotationPointY
+
+   On Error GoTo 0
+   Exit Property
+
+RotationPointYGet_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cwImage"
+End Property
+'---------------------------------------------------------------------------------------
+' Property  : RotationPointY
+' Author    : beededea
+' Date      : 20/11/2025
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Property Let RotationPointY(ByVal newValue As Long)
+   On Error GoTo RotationPointYLet_Error
+
+    If mRotationPointY <> newValue Then mRotationPointY = newValue Else Exit Property
+    
+   On Error GoTo 0
+   Exit Property
+
+RotationPointYLet_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cwImage"
+End Property
+
+'---------------------------------------------------------------------------------------
+' Procedure : HitTest
 ' Author    : beededea
 ' Date      : 19/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Function HitTest(ByVal x As Long, ByVal y As Long) As Boolean
+    On Error GoTo HitTest_Error
+
+    If Not mVisible Then Exit Function
+    If Not mEnabled Then Exit Function
+    
+    ' Compare against your image bounds (and optionally alpha)
+     
+    If x >= mLeft And x <= (mLeft + mWidth) _
+    And y >= mTop And y <= (mTop + mHeight) Then
+        HitTest = True
+    End If
+
+    On Error GoTo 0
+    Exit Function
+
+HitTest_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure HitTest of Class Module cfImageGDIP"
+End Function
+
+'---------------------------------------------------------------------------------------
+' Procedure : RaiseMouseDown
+' Author    : beededea
+' Date      : 21/03/2026
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
@@ -741,7 +847,7 @@ End Sub
 '---------------------------------------------------------------------------------------
 ' Procedure : RaiseMouseMove
 ' Author    : beededea
-' Date      : 19/03/2026
+' Date      : 21/03/2026
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
@@ -759,36 +865,10 @@ RaiseMouseMove_Error:
 End Sub
 
 '---------------------------------------------------------------------------------------
-' Procedure : HitTest
-' Author    : beededea
-' Date      : 19/03/2026
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-Public Function HitTest(ByVal x As Long, ByVal y As Long) As Boolean
-    On Error GoTo HitTest_Error
-
-    If Not mVisible Then Exit Function
-    If Not mEnabled Then Exit Function
-    
-    If x >= mLeft And x <= (mLeft + mWidth) _
-    And y >= mTop And y <= (mTop + mHeight) Then
-        HitTest = True
-    End If
-
-    On Error GoTo 0
-    Exit Function
-
-HitTest_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure HitTest of Class Module cfImageGDIP"
-End Function
-
-'---------------------------------------------------------------------------------------
 ' Procedure : ScreenToLocal
 ' Author    : beededea
 ' Date      : 19/03/2026
-' Purpose   :
+' Purpose   : convert screen from form to image coordinates
 '---------------------------------------------------------------------------------------
 '
 Public Sub ScreenToLocal(ByVal x As Long, ByVal y As Long, ByRef lx As Single, ByRef ly As Single)
