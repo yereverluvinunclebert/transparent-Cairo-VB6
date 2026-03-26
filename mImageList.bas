@@ -1,7 +1,7 @@
 Attribute VB_Name = "mGDIPImageList"
 Option Explicit
 
-Private Declare Function CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Dest As Any, Src As Any, ByVal cb As Long) As Long
+Public Declare Function CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Dest As Any, Src As Any, ByVal cb As Long) As Long
 Private Declare Function lstrlenW Lib "kernel32" (ByVal psString As Any) As Long
 
 Private Declare Function CreateDIBSection Lib "gdi32" _
@@ -25,51 +25,51 @@ Private Declare Function OleCreatePictureIndirect Lib "oleaut32" _
 ' ===========================
 ' GDI+
 ' ===========================
-Private Declare Function GdipCreateBitmapFromFile Lib "GDIPlus" _
+Private Declare Function GdipCreateBitmapFromFile Lib "gdiplus" _
     (ByVal filename As Long, ByRef bitmap As Long) As Long
 
-Public Declare Function GdipDisposeImage Lib "GDIPlus" _
+Public Declare Function GdipDisposeImage Lib "gdiplus" _
     (ByVal image As Long) As Long
 
-Private Declare Function GdipCreateHBITMAPFromBitmap Lib "GDIPlus" (ByVal bitmap As Long, ByRef hbmReturn As Long, ByVal background As Long) As Long
+Private Declare Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal bitmap As Long, ByRef hbmReturn As Long, ByVal background As Long) As Long
 Private Declare Function CreateStreamOnHGlobal Lib "ole32" (ByVal hGlob&, ByVal fDeleteOnRelease As Long, ppstm As stdole.IUnknown) As Long
-Private Declare Function GdipLoadImageFromStream Lib "GDIPlus" (ByVal pStream As Long, image As Long) As Long
+Private Declare Function GdipLoadImageFromStream Lib "gdiplus" (ByVal pStream As Long, image As Long) As Long
 Private Declare Function GdipGetImageWidth Lib "GdiPlus.dll" (ByVal image As Long, Width As Long) As Long
-Private Declare Function GdipGetImageHeight Lib "GdiPlus.dll" (ByVal image As Long, height As Long) As Long
-Private Declare Function GdipCreateBitmapFromScan0 Lib "GDIPlus" (ByVal dx As Long, ByVal dy As Long, ByVal stride As Long, ByVal PixelFormat As Long, ByVal pScanData As Long, image As Long) As Long
-Private Declare Function GdipGetImageGraphicsContext Lib "GDIPlus" (ByVal img As Long, Context As Long) As Long
-Private Declare Function GdipSetPixelOffsetMode Lib "GDIPlus" (ByVal Context As Long, ByVal PixOffsetMode As Long) As Long
-Private Declare Function GdipSetInterpolationMode Lib "GdiPlus.dll" (ByVal graphics As Long, ByVal InterMode As Long) As Long
-Private Declare Function GdipSetSmoothingMode Lib "GdiPlus.dll" (ByVal graphics As Long, ByVal SmoothingMode As Long) As Long
-Private Declare Function GdipCreateImageAttributes Lib "GDIPlus" (ByRef imageattr As Long) As Long
-Private Declare Function GdipSetImageAttributesColorMatrix Lib "GDIPlus" (ByVal imageattr As Long, ByVal ClrAdjType As ColorAdjustType, ByVal enableFlag As Long, colourMatrix As Any, grayMatrix As Any, ByVal Flags As ColorMatrixFlags) As GpStatus
-Private Declare Function GdipDrawImageRectRectI Lib "GDIPlus" (ByVal Context As Long, ByVal image As Long, ByVal dstX As Long, ByVal dstY As Long, ByVal dstWidth As Long, ByVal dstHeight As Long, ByVal SrcX As Long, ByVal SrcY As Long, ByVal srcWidth As Long, ByVal srcHeight As Long, ByVal srcUnit As Long, ByVal imageAttributes As Long, ByVal Callback As Long, ByVal CallbackData As Long) As Long
-Private Declare Function GdipDeleteGraphics Lib "GdiPlus.dll" (ByVal graphics As Long) As Long
-Private Declare Function GdipGetImageEncodersSize Lib "GDIPlus" (numEncoders As Long, Size As Long) As GpStatus
-Private Declare Function GdipGetImageEncoders Lib "GDIPlus" (ByVal numEncoders As Long, ByVal Size As Long, encoders As Any) As GpStatus
-Private Declare Function GdiplusShutdown Lib "GDIPlus" (ByVal Token As Long) As Long
+Private Declare Function GdipGetImageHeight Lib "GdiPlus.dll" (ByVal image As Long, Height As Long) As Long
+Private Declare Function GdipCreateBitmapFromScan0 Lib "gdiplus" (ByVal dx As Long, ByVal dy As Long, ByVal Stride As Long, ByVal PixelFormat As Long, ByVal pScanData As Long, image As Long) As Long
+Private Declare Function GdipGetImageGraphicsContext Lib "gdiplus" (ByVal img As Long, Context As Long) As Long
+Private Declare Function GdipSetPixelOffsetMode Lib "gdiplus" (ByVal Context As Long, ByVal PixOffsetMode As Long) As Long
+Private Declare Function GdipSetInterpolationMode Lib "GdiPlus.dll" (ByVal Graphics As Long, ByVal InterMode As Long) As Long
+Private Declare Function GdipSetSmoothingMode Lib "GdiPlus.dll" (ByVal Graphics As Long, ByVal SmoothingMode As Long) As Long
+Private Declare Function GdipCreateImageAttributes Lib "gdiplus" (ByRef imageattr As Long) As Long
+Private Declare Function GdipSetImageAttributesColorMatrix Lib "gdiplus" (ByVal imageattr As Long, ByVal ClrAdjType As ColorAdjustType, ByVal enableFlag As Long, colourMatrix As Any, grayMatrix As Any, ByVal flags As ColorMatrixFlags) As GpStatus
+Private Declare Function GdipDrawImageRectRectI Lib "gdiplus" (ByVal Context As Long, ByVal image As Long, ByVal dstX As Long, ByVal dstY As Long, ByVal dstWidth As Long, ByVal dstHeight As Long, ByVal SrcX As Long, ByVal SrcY As Long, ByVal srcWidth As Long, ByVal srcHeight As Long, ByVal srcUnit As Long, ByVal imageAttributes As Long, ByVal Callback As Long, ByVal CallbackData As Long) As Long
+Private Declare Function GdipDeleteGraphics Lib "GdiPlus.dll" (ByVal Graphics As Long) As Long
+Private Declare Function GdipGetImageEncodersSize Lib "gdiplus" (numEncoders As Long, Size As Long) As GpStatus
+Private Declare Function GdipGetImageEncoders Lib "gdiplus" (ByVal numEncoders As Long, ByVal Size As Long, encoders As Any) As GpStatus
+Private Declare Function GdiplusShutdown Lib "gdiplus" (ByVal Token As Long) As Long
 Private Declare Function GdiplusStartup Lib "GdiPlus.dll" (Token As Long, gdipInput As GDIPLUS_STARTINPUT, GdiplusStartupOutput As Long) As Long
 Private Declare Function GdipCreateBitmapFromHBITMAP Lib "GdiPlus.dll" (ByVal hBmp As Long, ByVal hPal As Long, GpBitmap As Long) As Long
 
 ' APIs image cropping
-Private Declare Function GdipGetImagePixelFormat Lib "GDIPlus" (ByVal image As Long, ByRef PixelFormat As Long) As Long
-Private Declare Function GdipCloneBitmapAreaI Lib "GDIPlus" (ByVal x As Long, ByVal y As Long, ByVal Width As Long, ByVal height As Long, ByVal PixelFormat As Long, ByVal srcBitmap As Long, dstBitmap As Long) As GpStatus
+Private Declare Function GdipGetImagePixelFormat Lib "gdiplus" (ByVal image As Long, ByRef PixelFormat As Long) As Long
+Private Declare Function GdipCloneBitmapAreaI Lib "gdiplus" (ByVal x As Long, ByVal y As Long, ByVal Width As Long, ByVal Height As Long, ByVal PixelFormat As Long, ByVal srcBitmap As Long, dstBitmap As Long) As GpStatus
 
-Private Declare Function GdipCreateFromHDC Lib "GDIPlus" _
-    (ByVal hDC As Long, ByRef graphics As Long) As Long
+Private Declare Function GdipCreateFromHDC Lib "gdiplus" _
+    (ByVal hDC As Long, ByRef Graphics As Long) As Long
 
-Private Declare Function GdipDrawImageRectI Lib "GDIPlus" _
-    (ByVal graphics As Long, _
+Private Declare Function GdipDrawImageRectI Lib "gdiplus" _
+    (ByVal Graphics As Long, _
      ByVal image As Long, _
      ByVal x As Long, _
      ByVal y As Long, _
      ByVal Width As Long, _
-     ByVal height As Long) As Long
+     ByVal Height As Long) As Long
      
 ' Windows constants Start
 
 Private Const PixelFormat32bppPARGB = &HE200B
-Private Const PixelFormat32bppARGB = &H26200A
+Public Const PixelFormat32bppARGB = &H26200A
 
 ' global GDI+ Types START
 Private Type BITMAPINFOHEADER
@@ -120,7 +120,7 @@ Private Type ImageCodecInfo
    FormatDescription As Long ' String Pointer; const WCHAR*
    FilenameExtension As Long ' String Pointer; const WCHAR*
    MimeType As Long       ' String Pointer; const WCHAR*
-   Flags As ImageCodecFlags   ' Should be a Long equivalent
+   flags As ImageCodecFlags   ' Should be a Long equivalent
    Version As Long
    SigCount As Long
    SigSize As Long
@@ -231,7 +231,7 @@ End Enum
 Public lngGDI As Long
 Private gdipInit As GDIPLUS_STARTINPUT
 
-#If twinbasic Then
+#If TWINBASIC Then
     ' Wrapper around TwinBasic's collection
     Public thisImageList As New cTBImageList
 #Else
@@ -272,7 +272,7 @@ Private Declare Function PathIsDirectory Lib "shlwapi" Alias "PathIsDirectoryA" 
 ' Purpose   : Obtain a stdPicture handle to a bitmap image from collection or provided by a GDIP function
 '---------------------------------------------------------------------------------------
 '
-Public Function fBmpToStdPicture(ByVal lhImageBitmap As Long, ByVal Width As Long, ByVal height As Long) As StdPicture
+Public Function fBmpToStdPicture(ByVal lhImageBitmap As Long, ByVal Width As Long, ByVal Height As Long) As StdPicture
 
     Dim hDC As Long: hDC = 0
     Dim hDibBitmap As Long: hDibBitmap = 0
@@ -292,10 +292,10 @@ Public Function fBmpToStdPicture(ByVal lhImageBitmap As Long, ByVal Width As Lon
     If Width <= 0 Then Width = dx ' if no supplied width then use the original width
     
     Call GdipGetImageHeight(lhImageBitmap, dy) ' cairo_image_surface_get_height ()
-    If height <= 0 Then height = dy
+    If Height <= 0 Then Height = dy
 
     ' create an alpha channel RGB DIB target bitmap
-    hDibBitmap = fCreateNewGdipDIBsection(Width, height, hDC)
+    hDibBitmap = fCreateNewGdipDIBsection(Width, Height, hDC)
 
     If hDibBitmap <> 0 Then
         ' select the bitmap into the memory DC
@@ -310,7 +310,7 @@ Public Function fBmpToStdPicture(ByVal lhImageBitmap As Long, ByVal Width As Lon
     GdipCreateFromHDC hDC, lhGraphics
 
     ' Draw image (scaled if required)
-    GdipDrawImageRectI lhGraphics, lhImageBitmap, 0, 0, Width, height
+    GdipDrawImageRectI lhGraphics, lhImageBitmap, 0, 0, Width, Height
 
     ' Convert hDibBitmap to StdPicture
     Set fBmpToStdPicture = fOleCreatePicFromHBitmap(hDibBitmap) ' return
@@ -344,7 +344,7 @@ End Function
 ' Purpose   : create an alpha channel RGB DIB bitmap
 '---------------------------------------------------------------------------------------
 '
-Private Function fCreateNewGdipDIBsection(ByVal cx As Long, ByVal cy As Long, ByRef hDC As Long) As Long
+Private Function fCreateNewGdipDIBsection(ByVal CX As Long, ByVal CY As Long, ByRef hDC As Long) As Long
     Dim bmi As BITMAPINFO
     Dim bits As Long: bits = 0
     Dim hBmpMemory As Long: hBmpMemory = 0
@@ -354,8 +354,8 @@ Private Function fCreateNewGdipDIBsection(ByVal cx As Long, ByVal cy As Long, By
     'load the bitmap information with pertinent properties
     With bmi.bmiHeader
         .biSize = Len(bmi.bmiHeader)
-        .biWidth = cx
-        .biHeight = -cy           ' top-down DIB
+        .biWidth = CX
+        .biHeight = -CY           ' top-down DIB
         .biPlanes = 1
         .biBitCount = 32
         .biCompression = 0        ' BI_RGB
@@ -667,7 +667,7 @@ End Function
 '             Finally, uses a function GdipCreateBitmapFromScan0 to both create and resize the image.
 '---------------------------------------------------------------------------------------
 '
-Public Sub resizeAndLoadImgToDict(ByRef thisDictionary As Object, ByVal key As String, ByVal strFilename As String, ByVal Width As Long, ByVal height As Long, Optional ByVal fullStringKey As String = "", Optional ByVal ImageOpacity As Integer)
+Public Sub resizeAndLoadImgToDict(ByRef thisDictionary As Object, ByVal Key As String, ByVal strFilename As String, ByVal Width As Long, ByVal Height As Long, Optional ByVal fullStringKey As String = "", Optional ByVal ImageOpacity As Integer)
 
     Dim thiskey As String: thiskey = 0
     Dim encoderCLSID As CLSID
@@ -698,15 +698,15 @@ Public Sub resizeAndLoadImgToDict(ByRef thisDictionary As Object, ByVal key As S
     If Width <= 0 Then Width = dx ' if no supplied width then use the original width
     
     Call GdipGetImageHeight(img, dy) ' cairo_image_surface_get_height ()
-    If height <= 0 Then height = dy
+    If Height <= 0 Then Height = dy
         
     ' create a scaled GDI+ bitmap of the image surface using GdipCreateBitmapFromScan0 and context quality attributes
-    picBitmap = createGdipBitmap(img, dx, dy, Width, height, ImageOpacity)
+    picBitmap = createGdipBitmap(img, dx, dy, Width, Height, ImageOpacity)
 
     'override any key
     If fullStringKey = "" Then
         ' create a unique key string
-        thiskey = key
+        thiskey = Key
     Else
         thiskey = fullStringKey
     End If
@@ -737,7 +737,7 @@ End Sub
 '             Finally, uses a function GdipCreateBitmapFromScan0 to both create and resize the image.
 '---------------------------------------------------------------------------------------
 '
-Public Function loadResizeGDIPImage(ByRef thisDictionary As Object, ByVal key As String, ByVal strFilename As String, ByVal Width As Long, ByVal height As Long, Optional ByVal fullStringKey As String = "", Optional ByVal ImageOpacity As Integer) As Long
+Public Function loadResizeGDIPImage(ByRef thisDictionary As Object, ByVal Key As String, ByVal strFilename As String, ByVal Width As Long, ByVal Height As Long, Optional ByVal fullStringKey As String = "", Optional ByVal ImageOpacity As Integer) As Long
 
     Dim thiskey As String: thiskey = 0
     Dim encoderCLSID As CLSID
@@ -768,10 +768,10 @@ Public Function loadResizeGDIPImage(ByRef thisDictionary As Object, ByVal key As
     If Width <= 0 Then Width = dx ' if no supplied width then use the original width
     
     Call GdipGetImageHeight(img, dy) ' cairo_image_surface_get_height ()
-    If height <= 0 Then height = dy
+    If Height <= 0 Then Height = dy
         
     ' create a scaled GDI+ bitmap of the image surface using GdipCreateBitmapFromScan0 and context quality attributes
-    picBitmap = createGdipBitmap(img, dx, dy, Width, height, ImageOpacity)
+    picBitmap = createGdipBitmap(img, dx, dy, Width, Height, ImageOpacity)
     
     loadResizeGDIPImage = picBitmap ' return
 

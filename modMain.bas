@@ -117,9 +117,40 @@ Attribute VB_Name = "modMain"
 Option Explicit
 
 ' class objects instantiated
-Public fMain As New cfMain
+'Public fMain As New cfMain
 'Public thisGDIPimage As cfImageGDIP
 
+'Public gImages As Collection
+
+'Public Type rect
+'    Left As Long
+'    Top As Long
+'    Right As Long
+'    Bottom As Long
+'End Type
+
+Public Type BitmapData
+    Width As Long
+    Height As Long
+    Stride As Long
+    PixelFormat As Long
+    Scan0 As Long
+    Reserved As Long
+End Type
+
+Public Declare Function GdipBitmapLockBits Lib "gdiplus" ( _
+    ByVal bitmap As Long, _
+    ByRef rect As rect, _
+    ByVal flags As Long, _
+    ByVal format As Long, _
+    ByRef lockedBitmapData As BitmapData) As Long
+
+Public Declare Function GdipBitmapUnlockBits Lib "gdiplus" ( _
+    ByVal bitmap As Long, _
+    ByRef lockedBitmapData As BitmapData) As Long
+
+Public Const ImageLockModeRead = &H1
+'Public Const PixelFormat32bppARGB = &H26200A
   
 '---------------------------------------------------------------------------------------
 ' Procedure : Main
@@ -217,28 +248,8 @@ Public fMain As New cfMain
 'End Sub
 
 
-'---------------------------------------------------------------------------------------
-' Procedure : addSingleImagesToImageList
-' Author    : beededea
-' Date      : 13/03/2026
-' Purpose   : addition of any single images required that are not within the PSD-derived XML
-'---------------------------------------------------------------------------------------
-'
-Public Sub addSingleImagesToImageList()
-    
-    On Error GoTo addSingleImagesToImageList_Error
 
-    thisImageList.AddImage "tardis", App.Path & "\tardis.png"
-    thisImageList.AddImage "player", App.Path & "\player.png"
-    
-    On Error GoTo 0
-    Exit Sub
 
-addSingleImagesToImageList_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addSingleImagesToImageList of Module modMain"
-
-End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : setMainFormDimensions
@@ -251,7 +262,7 @@ Public Sub setMainFormDimensions()
     '
     On Error GoTo setMainFormDimensions_Error
 
-    Form1.height = screenHeightTwips
+    Form1.Height = screenHeightTwips
     Form1.Width = screenWidthTwips
 
     On Error GoTo 0
@@ -448,12 +459,12 @@ End Sub
 ' Purpose   : This utility displays using GDI+, one of several image bitmaps extracted from a dictionary collection by key.
 '---------------------------------------------------------------------------------------
 '
-Public Function updateDisplayFromDictionary(ByVal Key As String, Optional Left As Long = 0, Optional Top As Long = 0, Optional Width As Long = -1, Optional height As Long = -1) As Boolean
+Public Function updateDisplayFromDictionary(ByVal Key As String, Optional Left As Long = 0, Optional Top As Long = 0, Optional Width As Long = -1, Optional Height As Long = -1) As Boolean
 
     On Error GoTo updateDisplayFromDictionary_Error
     
     'draws the selected image bitmap onto the GDIP full screen
-    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, Left, Top, Width, height)
+    Call GdipDrawImageRectI(gdipFullScreenBitmap, imageBitmap, Left, Top, Width, Height)
     
     ' The GDIP graphics are now deleted
     Call GdipDeleteGraphics(imageBitmap)
@@ -483,7 +494,7 @@ Public Function readImageFromDictionary(ByVal Key As String) As Long
     
     ' get the stored image from the collection if it exists
     If thisImageList.Exists(Key) <> 0 Then
-        readImageFromDictionary = thisImageList.Bitmap(Key) ' return value
+        readImageFromDictionary = thisImageList.bitmap(Key) ' return value
     End If
     
    Exit Function
@@ -762,7 +773,7 @@ End Function
 '
 Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hwnd As Long, ByVal sPngPath As String, ByVal x As Long, ByVal y As Long)
     Dim Width As Long
-    Dim height As Long
+    Dim Height As Long
     
     Dim surfImg As Long, cr As Long, surfPng As Long
     Dim dataPtr As Long
@@ -779,7 +790,7 @@ Public Sub drawAlphaPngCairo(thisHDC As Long, ByVal hwnd As Long, ByVal sPngPath
     If surfPng = 0 Then Exit Sub
 
     Width = cairo_image_surface_get_width(surfPng)
-    height = cairo_image_surface_get_height(surfPng)
+    Height = cairo_image_surface_get_height(surfPng)
 
     ' Draw the PNG on an intermediate offscreen ARGB Cairo surface that supports alpha (offscreen buffer).
 

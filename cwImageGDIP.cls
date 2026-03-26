@@ -43,6 +43,11 @@ Private mBitmap As Long
 Private mRotationPointX As Long
 Private mRotationPointY As Long
 
+Private mBmpData As BitmapData
+Private mScan0 As Long
+Private mStride As Long
+Private mLocked As Boolean
+
 ' public mouseDown event for an object of this class
 ' VB6 only raises MouseDown/Move/Up automatically for windowed controls it owns.
 
@@ -97,7 +102,7 @@ Private Sub Class_Terminate()
     On Error GoTo Class_Terminate_Error
       
     ' The GDIP graphics are now deleted
-    Call GdipDeleteGraphics(Bitmap)
+    Call GdipDeleteGraphics(bitmap)
     Call GdipDeleteGraphics(mBitmap)
     
     On Error GoTo 0
@@ -305,10 +310,10 @@ End Property
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
-Public Property Get height() As Long
+Public Property Get Height() As Long
    On Error GoTo HeightGet_Error
 
-   height = mHeight
+   Height = mHeight
 
    On Error GoTo 0
    Exit Property
@@ -324,7 +329,7 @@ End Property
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
-Public Property Let height(ByVal newValue As Long)
+Public Property Let Height(ByVal newValue As Long)
    On Error GoTo HeightLet_Error
 
     If mHeight <> newValue Then mHeight = newValue Else Exit Property
@@ -684,10 +689,10 @@ End Property
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
-Public Property Get Bitmap() As Long
+Public Property Get bitmap() As Long
    On Error GoTo BitmapGet_Error
 
-   Bitmap = mBitmap
+   bitmap = mBitmap
 
    On Error GoTo 0
    Exit Property
@@ -703,7 +708,7 @@ End Property
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
-Public Property Let Bitmap(ByVal newValue As Long)
+Public Property Let bitmap(ByVal newValue As Long)
    On Error GoTo BitmapLet_Error
 
     If mBitmap <> newValue Then mBitmap = newValue Else Exit Property
@@ -715,6 +720,166 @@ BitmapLet_Error:
 
     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Bitmap of Class Module cwImage"
 End Property
+
+
+''---------------------------------------------------------------------------------------
+'' Property  : BmpData
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Get BmpData() As BitmapData
+'   On Error GoTo BmpDataGet_Error
+'
+'   BmpData = mBmpData
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'BmpDataGet_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property BmpData of Class Module cwImage"
+'End Property
+''---------------------------------------------------------------------------------------
+'' Property  : BmpData
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Let BmpData(ByVal newValue As BitmapData)
+'   On Error GoTo BmpDataLet_Error
+'
+'    If mBmpData <> newValue Then mBmpData = newValue Else Exit Property
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'BmpDataLet_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property BmpData of Class Module cwImage"
+'End Property
+
+
+''---------------------------------------------------------------------------------------
+'' Property  : Scan0
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Get Scan0() As Long
+'   On Error GoTo Scan0Get_Error
+'
+'   Scan0 = mScan0
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'Scan0Get_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Scan0 of Class Module cwImage"
+'End Property
+''---------------------------------------------------------------------------------------
+'' Property  : Scan0
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Let Scan0(ByVal newValue As Long)
+'   On Error GoTo Scan0Let_Error
+'
+'    If mScan0 <> newValue Then mScan0 = newValue Else Exit Property
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'Scan0Let_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Scan0 of Class Module cwImage"
+'End Property
+'
+''---------------------------------------------------------------------------------------
+'' Property  : Stride
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Get Stride() As Long
+'   On Error GoTo StrideGet_Error
+'
+'   Stride = mStride
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'StrideGet_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Stride of Class Module cwImage"
+'End Property
+''---------------------------------------------------------------------------------------
+'' Property  : Stride
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Let Stride(ByVal newValue As Long)
+'   On Error GoTo StrideLet_Error
+'
+'    If mStride <> newValue Then mStride = newValue Else Exit Property
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'StrideLet_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Stride of Class Module cwImage"
+'End Property
+'
+'
+''---------------------------------------------------------------------------------------
+'' Property  : Locked
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Get Locked() As Long
+'   On Error GoTo LockedGet_Error
+'
+'   Locked = mLocked
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'LockedGet_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cwImage"
+'End Property
+''---------------------------------------------------------------------------------------
+'' Property  : Locked
+'' Author    : beededea
+'' Date      : 20/11/2025
+'' Purpose   :
+''---------------------------------------------------------------------------------------
+''
+'Public Property Let Locked(ByVal newValue As Long)
+'   On Error GoTo LockedLet_Error
+'
+'    If mLocked <> newValue Then mLocked = newValue Else Exit Property
+'
+'   On Error GoTo 0
+'   Exit Property
+'
+'LockedLet_Error:
+'
+'    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cwImage"
+'End Property
+
 
 
 '---------------------------------------------------------------------------------------
@@ -796,6 +961,9 @@ RotationPointYLet_Error:
     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cwImage"
 End Property
 
+
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : HitTest
 ' Author    : beededea
@@ -809,11 +977,22 @@ Public Function HitTest(ByVal x As Long, ByVal y As Long) As Boolean
     If Not mVisible Then Exit Function
     If Not mEnabled Then Exit Function
     
-    ' Compare against your image bounds (and optionally alpha)
+    ' Compare against your image bounds
      
-    If x >= mLeft And x <= (mLeft + mWidth) _
-    And y >= mTop And y <= (mTop + mHeight) Then
-        HitTest = True
+    If x < mLeft Or x > mLeft + mWidth Then Exit Function
+    If y < mTop Or y > mTop + mHeight Then Exit Function
+    
+    Dim lx As Long, ly As Long
+    lx = x - mLeft
+    ly = y - mTop
+    
+'    ' alpha test
+    If mLocked Then
+        If GetAlphaAt(lx, ly) > 10 Then ' threshold tweakable
+            HitTest = True
+        End If
+    Else
+        HitTest = True ' fallback
     End If
 
     On Error GoTo 0
@@ -828,7 +1007,7 @@ End Function
 ' Procedure : RaiseMouseDown
 ' Author    : beededea
 ' Date      : 21/03/2026
-' Purpose   :
+' Purpose   : Event raiser
 '---------------------------------------------------------------------------------------
 '
 Friend Sub RaiseMouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
@@ -848,7 +1027,7 @@ End Sub
 ' Procedure : RaiseMouseMove
 ' Author    : beededea
 ' Date      : 21/03/2026
-' Purpose   :
+' Purpose   : Event raiser
 '---------------------------------------------------------------------------------------
 '
 Friend Sub RaiseMouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
@@ -886,6 +1065,98 @@ ScreenToLocal_Error:
 End Sub
 
 '---------------------------------------------------------------------------------------
+' Procedure : LockBitmap
+' Author    : beededea
+' Date      : 25/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Sub LockBitmap()
+
+    On Error GoTo LockBitmap_Error
+
+    If mBitmap = 0 Then Exit Sub
+    If mLocked Then Exit Sub
+    
+    Dim rct As rect
+    rct.Left = 0
+    rct.Top = 0
+    rct.Right = mWidth
+    rct.Bottom = mHeight
+    
+    If GdipBitmapLockBits(mBitmap, rct, ImageLockModeRead, _
+                          PixelFormat32bppARGB, mBmpData) = 0 Then
+                          
+'        mScan0 = mBmpData.Scan0
+'        mStride = mBmpData.Stride
+'        mLocked = True
+        
+    End If
+
+    On Error GoTo 0
+    Exit Sub
+
+LockBitmap_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure LockBitmap of Class Module cfImageGDIP"
+
+End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : UnlockBitmap
+' Author    : beededea
+' Date      : 25/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Sub UnlockBitmap()
+
+    On Error GoTo UnlockBitmap_Error
+
+    If mLocked Then
+        GdipBitmapUnlockBits mBitmap, mBmpData
+        mLocked = False
+    End If
+
+    On Error GoTo 0
+    Exit Sub
+
+UnlockBitmap_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure UnlockBitmap of Class Module cfImageGDIP"
+
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : GetAlphaAt
+' Author    : beededea
+' Date      : 26/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Private Function GetAlphaAt(ByVal x As Long, ByVal y As Long) As Byte
+
+    On Error GoTo GetAlphaAt_Error
+
+    If x < 0 Or y < 0 Then Exit Function
+    If x >= mWidth Or y >= mHeight Then Exit Function
+    
+    Dim ptr As Long
+    ptr = mScan0 + (y * mStride) + (x * 4)
+    
+    CopyMemory GetAlphaAt, ByVal (ptr + 3), 1
+
+    On Error GoTo 0
+    Exit Function
+
+GetAlphaAt_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure GetAlphaAt of Class Module cfImageGDIP"
+
+End Function
+
+'---------------------------------------------------------------------------------------
 ' Procedure : W_Paint
 ' Author    : beededea
 ' Date      : 20/11/2025
@@ -907,5 +1178,6 @@ W_Paint_Error:
     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure W_Paint of Class Module cwOverlay"
 End Sub
  
+
 
 

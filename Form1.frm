@@ -36,6 +36,8 @@ Option Explicit
 Private WithEvents thisGDIPimage As cfImageGDIP
 Attribute thisGDIPimage.VB_VarHelpID = -1
 
+Private mHosts As Collection
+
 '---------------------------------------------------------------------------------------
 ' Procedure : Form_Load
 ' Author    : beededea
@@ -79,7 +81,10 @@ Public Sub vbFormSetup()
     
     Set thisGDIPimage = New cfImageGDIP
     
-    Set gImage = thisGDIPimage
+    'Set gImage = thisGDIPimage
+    
+    Set mHosts = New Collection
+    Set gImages = New Collection
     
     gFormHwnd = Form1.hwnd
     gPrevWndProc = SetWindowLong(Form1.hwnd, GWL_WNDPROC, AddressOf SubclassProc)
@@ -104,7 +109,7 @@ Public Sub vbFormSetup()
     
     ' add single images to image list
     Call addSingleImagesToImageList
-              
+                  
     'creates a bitmap section in memory that applications can write to directly
     Call createNewGDIPBitmap ' clears the whole previously drawn image section and any animation can continue
     
@@ -235,6 +240,35 @@ thisGDIPimage_MouseMove_Error:
 End Sub
 
     
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : addSingleImagesToImageList
+' Author    : beededea
+' Date      : 13/03/2026
+' Purpose   : addition of any single images required that are not within the PSD-derived XML
+'---------------------------------------------------------------------------------------
+'
+Public Sub addSingleImagesToImageList()
+    
+    On Error GoTo addSingleImagesToImageList_Error
+
+    thisImageList.AddImage "tardis", App.Path & "\tardis.png"
+    thisImageList.AddImage "player", App.Path & "\player.png"
+    
+    'addImagesToStdCollection
+    
+    'Call addImagesToStdCollection(thisImageList.Bitmap("player"), 750, 250, 200, 200)
+    
+    On Error GoTo 0
+    Exit Sub
+
+addSingleImagesToImageList_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addSingleImagesToImageList of Module modMain"
+
+End Sub
+    
 '---------------------------------------------------------------------------------------
 ' Procedure : addSingleImagesToFullScreenDisplay
 ' Author    : beededea
@@ -260,7 +294,7 @@ Public Sub addSingleImagesToFullScreenDisplay()
     
     With thisGDIPimage
         .Bitmap = readImageFromDictionary("player")
-        .Left = 500
+        .Left = 950
         .Top = 250
         .Width = 200
         .height = 200
@@ -420,5 +454,52 @@ Public Sub InitialiseImageWidgetsFromXML()
 InitialiseImageWidgetsFromXML_Error:
 
     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure InitialiseImageWidgetsFromXML, line " & Erl & "."
+
+End Sub
+
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : addImagesToStdCollection
+' Author    : beededea
+' Date      : 24/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
+Public Sub addImagesToStdCollection(ByVal bmp As Long, ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long)
+
+    Dim img As cfImageGDIP
+    
+    On Error GoTo addImagesToStdCollection_Error
+
+    Set img = New cfImageGDIP
+    
+    img.Bitmap = bmp
+    img.Left = x
+    img.Top = y
+    img.Width = w
+    img.height = h
+    
+    ' lock if using alpha hit-test
+    'img.LockBitmap
+    
+    ' store in global list (for hit-testing)
+    gImages.Add img
+    
+    ' create event host
+    Dim host As cImageHost
+    Set host = New cImageHost
+    
+    Set host.img = img
+    host.Index = mHosts.Count + 1
+    
+    mHosts.Add host
+
+    On Error GoTo 0
+    Exit Sub
+
+addImagesToStdCollection_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addImagesToStdCollection of Form Form1"
 
 End Sub
