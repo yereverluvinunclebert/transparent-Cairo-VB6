@@ -6,13 +6,58 @@ Attribute VB_Name = "modMain"
 ' Purpose   : Test program to write images to a transparent form using Cairo and GDI+
 '---------------------------------------------------------------------------------------
 
-' form1.form_load       The main program entry point
-' initiateAPIWindow     The process that does the majority of the Window initialisation determining screen details, initiating the window.
-' createAPIWindow       The main process that does the majority of the Window initialisation and other GDI+ configuration
-' mainWndProc           The routine where all the Cairo and GDI+ drawing is done, intercepting messages such as WM_PAINT
+' form1.form_load         The main program entry point
 
-' The Problem:
-' ============
+' Main program classes & modules:
+'   Form1                 The main VB6 form that provides the main program entry point. Invisible and used solely as a code holder for some routines.
+'   cfImageGDIP           The main class that provides the image properties, hit testing and raising events, uses GDI+ to paint.
+'   cImageEventHost       Eventhost bridge class to capture/enable withEvents for all the images of type cfImageGDIP within the collection.
+'   MenuForm              Not visible at runtime, provides a right click menu to the main form.
+'   modAPIDeclarations    Module containing all the API declarations specific to this program not already declared elsewhere.
+'   modMain               This module, containing useful public routines used by this program
+'   modSubClass           This module sub classes Form1 to intercept mouse-move and mouse-down messages, performs hit-tests and raises events.
+'   modWindowAPI          Module that may provide a user-created window rather than a VB6 form (currently unused).
+
+' Supporting classes & modules:
+'   cGdipImageList        Wrapper class giving a 'Richclient' imageList interface to a collection whilst using GDI+ to load, resize and read images from it.
+'   cTBImageList          As above but using a native TwinBasic collection whilst still using GDI+ to resize images where needed.
+'   Dictionary            Christian Buse's Scripting.Dictionary (collection) replacement.
+'   mGDIPImageList        Module to support cGdipImageList & cTBImageList, subs, functions and API declarations.
+
+' The critical parts of this program are:
+
+' addSingleImagesToImageList - that loads the PNGs into a dictionary collection (imageList).
+' addSingleImagesToFullScreenDisplay - that puts single images on the pre-prepared screen using the addThisImage routine.
+' InitialiseImageWidgetsFromXML - that puts mutiple images on screen from an XML definition, using the addThisImage routine.
+' SubclassProc - the routine from which all hit tests and event trapping is initiated.
+
+' Description:
+
+' Program uses GDI+ to read transparent PNGs from a folder into a dictionary. The details of each image are stored in an XML file,
+' which is read line by line and used to identify and place each transparent image layer on screen in the correct location and order.
+' The dictionary is Christian Buse's - VBA Dictionary. The data for each PNG is loaded as a ADODB.Stream object and GDI+ is used to
+' resize and place an image into a dictionary and from that, onto the screen. The main VB6 form is invisible and appears unused, but
+' it exists as a receptacle to allow GDI+ to paint images directly to the device context associated with the form, ie. the screen.
+' The form is sub-classed, ie. messages to and from the window are intercepted to allow manual handling of mouse events, hit-testing
+' and raising of events, replicating what would occur if we were using VB6 controls. Hit-testing is performed using a duplicate collection
+' loaded with a duplicate collection and the bounds and transparencies on the image are tested to determine which image layer has been
+' 'clicked'. Yet another duplicate collection is loaded and tested to act as an event 'sink' bridge to provide event handling for each
+' layer.
+'
+' For a multi-platform graphics alternative, Cairo will eventually be be an option that can be selected to read and place the images
+' on screen but GDI+ is being used in the interim as it is easier to implement, allowing program construction and to prove the
+' utility of the program until the Cairo code is complete and working. When Cairo is implemented GDI+ will probably still be used to
+' resize and load the images into the various collections.
+
+' Credits:
+
+' Olaf Schmidt -
+' Christian Buse - VBA Dictionary
+' Andrew Heinlein  - creating a custom window
+' Joaquim - Color Matrix
+
+' Cairo Problems:
+' ===============
 '
 ' When you use Cairo with an HDC target (via cairo_win32_surface_create(hDC)), the resulting surface is not alpha-aware.
 ' GDI does not support per-pixel alpha — only color values. So when you draw an image with semi-transparent pixels, Cairo
@@ -30,8 +75,8 @@ Attribute VB_Name = "modMain"
 ' Do the whole thing using GDI+ as a demonstration of overall capability - (tested and working) -
 ' - when working later, I will slot in the Cairo code
 
-' Status:
-' =======
+' Status for B:
+' =============
 
 ' We have a version that now places a Cairo image to the DC of a solid white background of user-created form using createWindowEx - (tested and working)
 ' We have added the necessary code to place an image on a solid VB6 form using GDI+ (tested and working)
@@ -39,30 +84,53 @@ Attribute VB_Name = "modMain"
 ' We have added the capability to store and extract an std picture image from a dictionary (CB's dict) and with my RC collection wrapper (tested and working)
 ' We have added bitmap capability to my RC collection wrapper (tested and working)
 ' Added a menu to allow easy program closing (tested and working)
-' Added an image class to take an image bitmap and other properties to draw on the screen (tested and working)
-' Added routine to read image properties from parsed XML (tested and working)
-' Added a load of each image object to the screen (tested and working)
+' Added an image class to take an image bitmap and other properties to draw a single image on the screen (tested and working)
+' Added routine to read image properties from parsed XML (tested and working).
+' Added a load of multiple image objects to the screen using XML (tested and working).
+' Added event handling for a single image object.
+' Added a collection and class for hit testing to identify each image object's bounds and transparent areas.
+' Added a collection and an event class 'sink' to allow the handling and raising of events for each image object.
+' Fully documented.
+' Fixed bugs in initialise from XML re: missing fields causing errors & missing " px" in metrics.
 
 ' Tasks?
 ' ======
 
-' Add the event handling for each image object
-' Add the hit test for each layer
-' Add the pixel test to see if a layer is transparent and allow click-through
-' Add the top layer image list for images that do not require responses to click events and allow full click-through.
+' lockBitmap GdipBitmapLockBits research
+' stride and scan0 - research
 
-' create widget class,
+' rename the class files to match their exposed names
 
-' user created form
-' user created timers
+' refer to an image object by name and change a property, text for chatGPT.
+'
+' I want to know how to globally declare and set image objects dynamically. For instance, the program might read an XML file to obtain
+' the name and x/y metrics for a sequential series of PNGs, therefore in the program I want to dynamically DIM and SET an image object
+' of class cfImageGDIP for each image in the XML, so that I can globally refer to each image object by name and change its
+' properties thus:
+'
+' ie. first image name read from the XML is "tardis" - change the width property - tardis.Width = 200
+'     second image name read from the XML is "player" - change the width property - player.Width = 200
+'
+' Note that the names of the various image objects will not be known until the XML is read.
 
-' Cairo
+
+
+' Add a top layer image list for images that do not require responses to click events and allow full click-through.
+
+' Create a widget class comprising all the image objects
+
+' Why do we need to utilise a user-created window/form?
+'    For testing if for some reason we can't get the Cairo version working.
+'    A custom form is lightweight and program size can be reduced, the extra complexity and utility of a VB6 program.
+
+' user created timers - not required
+
+' Status for Potential solution A - Cairo:
+' ========================================
+   
+' All the above work and structure in B. is applicable to Cairo.
 
 ' The Cairo function needs to be hacked to move the file load to the startup
-
-' in Steamydock if we can replace the VB6 form that is made invisible with a user-created window as per APIwindow, then place the GDI+ created icons onto it then we have materially solved the capability to create
-' programming 'widgets' on a user-created transparent window. Why do we need to create the user-created window? for testing if for some reason we can't get the Cairo version working.
-    ' custom form is
 
 ' The recommended call to cairo_image_surface_create does not work using other cairo DLLs, placing nothing on any hDC
 ' When I use vbCairo cairo_win32_surface_create (thisHDC) then a transparent image is placed directly on the device context as required
@@ -113,44 +181,14 @@ Attribute VB_Name = "modMain"
 '    Surfaces.Add "Tardis", PNGData
 '#End If
 
+' initiateAPIWindow     The process that does the majority of the Window initialisation determining screen details, initiating the window.
+' createAPIWindow       The main process that does the majority of the Window initialisation and other GDI+ configuration
+' mainWndProc           The routine where all the Cairo and GDI+ drawing is done, intercepting messages such as WM_PAINT
+
 
 Option Explicit
 
-' class objects instantiated
-'Public fMain As New cfMain
-'Public thisGDIPimage As cfImageGDIP
 
-'Public gImages As Collection
-
-'Public Type rect
-'    Left As Long
-'    Top As Long
-'    Right As Long
-'    Bottom As Long
-'End Type
-
-Public Type BitmapData
-    Width As Long
-    Height As Long
-    Stride As Long
-    PixelFormat As Long
-    Scan0 As Long
-    Reserved As Long
-End Type
-
-Public Declare Function GdipBitmapLockBits Lib "gdiplus" ( _
-    ByVal bitmap As Long, _
-    ByRef rect As rect, _
-    ByVal flags As Long, _
-    ByVal format As Long, _
-    ByRef lockedBitmapData As BitmapData) As Long
-
-Public Declare Function GdipBitmapUnlockBits Lib "gdiplus" ( _
-    ByVal bitmap As Long, _
-    ByRef lockedBitmapData As BitmapData) As Long
-
-Public Const ImageLockModeRead = &H1
-'Public Const PixelFormat32bppARGB = &H26200A
   
 '---------------------------------------------------------------------------------------
 ' Procedure : Main
@@ -184,67 +222,6 @@ Public Const ImageLockModeRead = &H1
 'Main_Error:
 '
 '     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Main of Module modMain"
-'End Sub
-
-
-
-
-    
-    
-'---------------------------------------------------------------------------------------
-' Procedure : setUpGDIP
-' Author    : beededea
-' Date      : 16/03/2026
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-'Public Sub setUpGDIP()
-'
-'    ' Get a device context compatible with the window, this allows placement of the Cairo image on the user created window hDC
-'    On Error GoTo setUpGDIP_Error
-'
-'    ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
-'    Call createGDIStructures
-'
-'    ' Create a gdi bitmap with width and height of what we are going to draw into it
-'    Call createNewGDIPBitmap
-'
-'    On Error GoTo 0
-'    Exit Sub
-'
-'setUpGDIP_Error:
-'
-'     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure setUpGDIP of Module modMain"
-'
-'End Sub
-'
-''---------------------------------------------------------------------------------------
-'' Procedure : configWindowParams
-'' Author    : beededea
-'' Date      : 16/03/2026
-'' Purpose   :
-''---------------------------------------------------------------------------------------
-''
-'Public Sub configWindowParams()
-'
-'    ' set the screenTwipsPerPixel
-'    On Error GoTo configWindowParams_Error
-'
-'    Call monitorProperties
-'
-'    ' resolve VB6 sizing width bug
-'    Call resolveVB6SizeBug
-'
-'    ' UpdateLayeredWindow structures
-'    Call setWindowCharacteristics
-'
-'    On Error GoTo 0
-'    Exit Sub
-'
-'configWindowParams_Error:
-'
-'     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure configWindowParams of Module modWindowAPI"
-'
 'End Sub
 
 
@@ -333,7 +310,7 @@ End Sub
 ' Procedure : setWindowCharacteristics
 ' Author    : beededea
 ' Date      : 07/04/2020
-' Purpose   : update some characteristics for the window we will be updating using UpdateLayeredWindow API
+' Purpose   : update some characteristics for the underlying form we will be updating using UpdateLayeredWindow API
 '---------------------------------------------------------------------------------------
 '
 Public Sub setWindowCharacteristics(ByVal rDzOrderMode As String, ByVal thisOpacity As String)
@@ -906,44 +883,3 @@ End Sub
 
 
 
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : thisGDIPimage_MouseDown
-' Author    : beededea
-' Date      : 21/03/2026
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-Private Sub thisGDIPimage_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
-    On Error GoTo thisGDIPimage_MouseDown_Error
-
-    Debug.Print "MouseDown", x, y
-
-    On Error GoTo 0
-    Exit Sub
-
-thisGDIPimage_MouseDown_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure thisGDIPimage_MouseDown of Module modMain"
-End Sub
-
-'---------------------------------------------------------------------------------------
-' Procedure : thisGDIPimage_MouseMove
-' Author    : beededea
-' Date      : 21/03/2026
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-Private Sub thisGDIPimage_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
-    On Error GoTo thisGDIPimage_MouseMove_Error
-
-    Debug.Print "MouseMove", x, y
-
-    On Error GoTo 0
-    Exit Sub
-
-thisGDIPimage_MouseMove_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure thisGDIPimage_MouseMove of Module modMain"
-End Sub

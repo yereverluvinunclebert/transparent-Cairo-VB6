@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget minimumVersion="4.0">
+	<settings>
+		<setting debug = "off" />
+	</settings>
+
+<!--
+	 Steampunk Clock Calendar
+	 Written by: Dean Beedell
+
+	 Copyright (C) 2010 All Rights Reserved.
+
+	 Sounds - Modified from the original on Freesound (http://www.freesound.org/usersViewSingle.php?id=37876)
+	 Originating from user digifishmusic, Glaneur_de_sons, acclivity, BMacZero, Benboncan, Wrylytucker, KJackson, Cognito Perceptu and RHumphries
+
+	 Graphics - all my own, with inspiration from the PC game of Jeff Wayne's War of the Worlds.
+
+	 Javascript Code - All my own.
+
+	 XML file - The original XML file was created using the photoshop converter from Yahoo.
+
+	 Version 2.9 (MkII)
+
+-->
+
+	<window
+		title		= "SteamPunk Clock Calendar"
+		name		= "mainWindow"
+		width		= "1000"
+		height		= "780"
+		visible		= "false"
+		shadow		= "false"
+	>
+
+                <image
+			src = "Resources/help-bottom.png"
+			name = "helpBottom"
+			hOffset = "150"
+			vOffset  = "0"
+			opacity = "255"
+                        width = "781"
+                        height = "520"
+                        visible = "true"
+		/>
+
+                <image
+			src = "Resources/backscreen.png"
+			name = "backscreen"
+			hOffset = "350"
+			vOffset  = "225"
+                        width = "230"
+                        height = "191"
+			opacity = "255"
+                        visible = "true"
+		/>
+
+	</window>
+
+</widget>

@@ -11,12 +11,6 @@ Begin VB.Form Form1
    ScaleHeight     =   209
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   312
-   Begin VB.Timer tmrAnimate 
-      Enabled         =   0   'False
-      Interval        =   500
-      Left            =   150
-      Top             =   90
-   End
    Begin VB.Label lblForm 
       Caption         =   "This form is made invisible at runtime and unused except for timers"
       Height          =   735
@@ -31,12 +25,19 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'---------------------------------------------------------------------------------------
+' Module    : Form1
+' Author    : beededea
+' Date      : 29/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+
 Option Explicit
 
 Private WithEvents thisGDIPimage As cfImageGDIP
 Attribute thisGDIPimage.VB_VarHelpID = -1
 
-Private mHosts As Collection
+Private mEventHostCollection As Collection
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Form_Load
@@ -80,12 +81,12 @@ Public Sub vbFormSetup()
     sWidgetZOrder = "2"
     
     Set thisGDIPimage = New cfImageGDIP
+        
+    ' standard VB6 collections used for hit testing and event capture
+    Set gHitTestCollection = New Collection
+    Set mEventHostCollection = New Collection
     
-    'Set gImage = thisGDIPimage
-    
-    Set mHosts = New Collection
-    Set gImages = New Collection
-    
+    ' subclass the form to capture events
     gFormHwnd = Form1.hwnd
     gPrevWndProc = SetWindowLong(Form1.hwnd, GWL_WNDPROC, AddressOf SubclassProc)
     
@@ -101,13 +102,13 @@ Public Sub vbFormSetup()
     ' Initialises GDI Plus
     Call initialiseGDIPStartup
     
-    ' update the window with the appropriately sized and qualified image
+    ' update some characteristics for the underlying invisible form
     Call setWindowCharacteristics(sWidgetZOrder, sWidgetOpacity)
     
     ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
     Call createGDIStructures
     
-    ' add single images to image list
+    ' add single images to image list (dictionary)
     Call addSingleImagesToImageList
                   
     'creates a bitmap section in memory that applications can write to directly
@@ -157,86 +158,33 @@ Form_MouseUp_Error:
 
 End Sub
 
-''---------------------------------------------------------------------------------------
-'' Procedure : tmrAnimate_Timer
-'' Author    : beededea
-'' Date      : 18/03/2026
-'' Purpose   : Timer WILL be replaced by a custom timer, not currently used
-''---------------------------------------------------------------------------------------
-''
-'Private Sub tmrAnimate_Timer()
-'
-'
-'    ' now we paint the image using GDI+ extracting the image from a previously loaded dictionary, in this case Christian Buse's VBA dictionary replacement
-'    'updateDisplayFromDictionary "tardis", (500), (250), (200), (200)
-'
-'    ' Calls UpdateLayeredWindow with created GDI bitmap
-'    'Call updateScreenUsingGDIPBitmap
-'
-'    'Call drawAlphaPngGDIP(500, 250, 200, 200)
-'
-'    ' now we paint the image using Cairo, Cairo HAS to load from file as the process to get Cairo to load from a collection is rather tricky using VB6 (Cairo requires a callback as input)
-'    'Call drawAlphaPngCairo(GetDC(0&), hVBFormHwnd, App.Path & "\player.png", 300, 350)
-'
-'    On Error GoTo tmrAnimate_Timer_Error
-'
-'    On Error GoTo 0
-'    Exit Sub
-'
-'tmrAnimate_Timer_Error:
-'
-'     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure tmrAnimate_Timer of Form Form1"
-'End Sub
 
 
+'---------------------------------------------------------------------------------------
+' Procedure : Form_Unload
+' Author    : beededea
+' Date      : 29/03/2026
+' Purpose   :
+'---------------------------------------------------------------------------------------
+'
 Private Sub Form_Unload(Cancel As Integer)
+    On Error GoTo Form_Unload_Error
+
     If gPrevWndProc <> 0 Then
         SetWindowLong Me.hwnd, GWL_WNDPROC, gPrevWndProc
     End If
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : thisGDIPimage_MouseDown
-' Author    : beededea
-' Date      : 24/03/2026
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-Private Sub thisGDIPimage_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
-
-    On Error GoTo thisGDIPimage_MouseDown_Error
-
-    MsgBox "clicked on !"
 
     On Error GoTo 0
     Exit Sub
 
-thisGDIPimage_MouseDown_Error:
+Form_Unload_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure thisGDIPimage_MouseDown of Form Form1"
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : thisGDIPimage_MouseMove
-' Author    : beededea
-' Date      : 24/03/2026
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-Private Sub thisGDIPimage_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
-    
-    On Error GoTo thisGDIPimage_MouseMove_Error
-
-    
-
-    On Error GoTo 0
-    Exit Sub
-
-thisGDIPimage_MouseMove_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure thisGDIPimage_MouseMove of Form Form1"
+    With Err
+         If .Number <> 0 Then
+            MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Form_Unload of Form Form1"
+            Resume Next
+          End If
+    End With
 End Sub
 
     
@@ -247,6 +195,7 @@ End Sub
 ' Author    : beededea
 ' Date      : 13/03/2026
 ' Purpose   : addition of any single images required that are not within the PSD-derived XML
+'             inserts the image into a dictionary, in this case Christian Buse's VBA dictionary replacement
 '---------------------------------------------------------------------------------------
 '
 Public Sub addSingleImagesToImageList()
@@ -255,11 +204,7 @@ Public Sub addSingleImagesToImageList()
 
     thisImageList.AddImage "tardis", App.Path & "\tardis.png"
     thisImageList.AddImage "player", App.Path & "\player.png"
-    
-    'addImagesToStdCollection
-    
-    'Call addImagesToStdCollection(thisImageList.Bitmap("player"), 750, 250, 200, 200)
-    
+            
     On Error GoTo 0
     Exit Sub
 
@@ -273,36 +218,17 @@ End Sub
 ' Procedure : addSingleImagesToFullScreenDisplay
 ' Author    : beededea
 ' Date      : 18/03/2026
-' Purpose   : paint the images using GDI+ extracting the image from a pre-loaded dictionary, in this case Christian Buse's VBA dictionary replacement
+' Purpose   : paint the images using GDI+ extracting the image from the pre-loaded dictionary/imageList
+'             populate the hitlist collection with an image and size/location parameters
+'             populate the event collection
 '---------------------------------------------------------------------------------------
 '
 Public Sub addSingleImagesToFullScreenDisplay()
     
     On Error GoTo addSingleImagesToFullScreenDisplay_Error
 
-    With thisGDIPimage
-        .Bitmap = readImageFromDictionary("tardis")
-        .Left = 750
-        .Top = 250
-        .Width = 200
-        .height = 200
-        .Name = "tardis"
-        .Opacity = 100
-        .Tooltip = "this image is the Tardis image"
-        .Refresh
-    End With
-    
-    With thisGDIPimage
-        .Bitmap = readImageFromDictionary("player")
-        .Left = 950
-        .Top = 250
-        .Width = 200
-        .height = 200
-        .Name = "player"
-        .Opacity = 100
-        .Tooltip = "this image is the Player image"
-        .Refresh
-    End With
+    Call addThisImage("tardis", 750, 250, 200, 200, "tardis", 100, vbNullString, True)
+    Call addThisImage("player", 950, 250, 200, 200, "player", 100, vbNullString, True)
 
     On Error GoTo 0
     Exit Sub
@@ -313,6 +239,52 @@ addSingleImagesToFullScreenDisplay_Error:
 End Sub
 
 
+'---------------------------------------------------------------------------------------
+' Procedure : addThisImage
+' Author    : beededea
+' Date      : 27/03/2026
+' Purpose   : From the previously populated image list, creates an image of type cfImageGDIP with associated properties,
+'             then adds hit testing and event handling for each layer
+'---------------------------------------------------------------------------------------
+'
+Private Sub addThisImage(ByVal thisKey As String, ByVal thisX As Long, ByVal thisY As Long, ByVal thisWidth As Long, ByVal thisHeight As Long, ByVal thisName As String, ByVal thisOpacity As Integer, ByVal thisTooltip As String, ByVal thisRefresh As Boolean)
+    
+    Dim thisBitmap As Long: thisBitmap = 0
+    
+    On Error GoTo addThisImage_Error
+    
+    ' extract a bitmap from the previously populated image list
+    thisBitmap = readImageFromDictionary(thisKey)
+    
+    ' creates an image of type cfImageGDIP with associated properties
+    With thisGDIPimage
+        .bitmap = thisBitmap
+        .Left = thisX
+        .Top = thisY
+        .Width = thisWidth
+        .Height = thisHeight
+        .Name = thisName
+        .Opacity = thisOpacity
+        .Tooltip = thisTooltip
+        If thisRefresh = True Then .Refresh
+    End With
+    
+    ' adds hit testing and event handling for each layer
+    Call addImagesToHitAndEventCollections(thisBitmap, thisName, thisX, thisY, thisWidth, thisHeight)
+
+    On Error GoTo 0
+    Exit Sub
+
+addThisImage_Error:
+
+    With Err
+         If .Number <> 0 Then
+            MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addThisImage of Form Form1"
+            Resume Next
+          End If
+    End With
+    
+End Sub
 
 
 
@@ -349,7 +321,7 @@ Public Sub InitialiseImageWidgetsFromXML()
 '    Dim sVOffset As String: sVOffset = vbNullString
     Dim sOpacity As String: sOpacity = vbNullString
     Dim Width As Long: Width = 0
-    Dim height As Long: height = 0
+    Dim Height As Long: Height = 0
     Dim hOffset As Long: hOffset = 0
     Dim vOffset As Long: vOffset = 0
     Dim Opacity As Integer: Opacity = 0
@@ -366,11 +338,12 @@ Public Sub InitialiseImageWidgetsFromXML()
     Dim MainNode As MSXML2.IXMLDOMNode
 '    Dim ImageNode As MSXML2.IXMLDOMNode
 '    Dim ImageNodes As MSXML2.IXMLDOMNodeList
-    
+
     On Error GoTo InitialiseImageWidgetsFromXML_Error
     
     someOpacity = Val(sOpacity) / 100
-    xmlFileToLoad = App.Path & "\RES\imagesXML.xml"
+    xmlFileToLoad = App.Path & "\RES\CPUimagesXML.xml"
+    'xmlFileToLoad = App.Path & "\RES\clockcalendarimagesXML.xml"
     
     If fFExists(xmlFileToLoad) Then
         objxmldoc.Load xmlFileToLoad
@@ -383,10 +356,7 @@ Public Sub InitialiseImageWidgetsFromXML()
             
     windowWidth = MainNode.selectSingleNode("@width").Text
     windowHeight = MainNode.selectSingleNode("@height").Text
-'
-'    pPSDWidth = CLng(windowWidth)
-'    pPSDHeight = CLng(windowHeight)
-    
+
     ' get the image values from the XML data, the num results should be non-zero
     Set nodeList = objxmldoc.selectNodes("widget/window/image")
     num_results = nodeList.Length
@@ -402,40 +372,51 @@ Public Sub InitialiseImageWidgetsFromXML()
     If Not nodeList Is Nothing Then
          For Each node In nodeList
          
+            On Error Resume Next
+            
             sSrc = node.selectSingleNode("@src").Text
             sSrc = Replace(sSrc, "/", "\")
             sName = node.selectSingleNode("@name").Text
+                        
             sWidth = node.selectSingleNode("@width").Text
-            Width = CLng(Left$(sWidth, (InStr(sWidth, " px") - 1)))
+            If sWidth <> "" Then
+                If InStr(sWidth, " px") Then
+                    Width = CLng(Left$(sWidth, (InStr(sWidth, " px") - 1)))
+                Else
+                    Width = CLng(sWidth)
+                End If
+            Else
+                Width = 0
+            End If
             
             sHeight = node.selectSingleNode("@height").Text
-            height = CLng(Left$(sHeight, (InStr(sHeight, " px") - 1)))
-            
+            If sHeight <> "" Then
+                If InStr(sHeight, " px") Then
+                    Height = CLng(Left$(sHeight, (InStr(sHeight, " px") - 1)))
+                Else
+                    Height = CLng(sHeight)
+                End If
+            Else
+                Height = 0
+            End If
             hOffset = CLng(node.selectSingleNode("@hOffset").Text)
             vOffset = CLng(node.selectSingleNode("@vOffset").Text)
             Opacity = CInt(node.selectSingleNode("@opacity").Text) / 2.55
             
-            If Opacity = 100 Then  ' only handles layers that have an opacity greater than 0 - need to note this for the future, this will cause a problem!
+            On Error GoTo InitialiseImageWidgetsFromXML_Error
+            
+            If Opacity > 0 Then ' only handles layers that have an opacity greater than 0 - need to note this for the future, this will cause a problem!
             
                'add each current Layer path and surface object into the global ImageList collection (using LayerPath as the ImageKey)
-                pngFileToLoad = App.Path & "\RES\" & sSrc
+                pngFileToLoad = App.Path & "\Res\" & sSrc
                 If fFExists(pngFileToLoad) Then
                     
                     ' add the image named in the XML to the image list
                     thisImageList.AddImage sName, pngFileToLoad
-    
+                        
                     ' create an image object and write it to the full screen bitmap
-                    With thisGDIPimage
-                        .Bitmap = readImageFromDictionary(sName)
-                        .Left = hOffset
-                        .Top = vOffset
-                        .Width = Width
-                        .height = height
-                        .Name = sName
-                        .Opacity = 100
-                        .Tooltip = "this image is the " & sName & " image"
-                        .Refresh
-                    End With
+                    Call addThisImage(sName, hOffset, vOffset, Width, Height, sName, Opacity, vbNullString, True)
+
                 Else
                     MsgBox "Error, this PNG resource file seems to be missing " & pngFileToLoad
                 End If
@@ -460,46 +441,61 @@ End Sub
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : addImagesToStdCollection
+' Procedure : addImagesToHitAndEventCollections
 ' Author    : beededea
 ' Date      : 24/03/2026
-' Purpose   :
+' Purpose   : This is the clever bit that adds a single image bitmap to two collections, one for hit testing and capturing
+'             event handling.
+'
 '---------------------------------------------------------------------------------------
 '
-Public Sub addImagesToStdCollection(ByVal bmp As Long, ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long)
+Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName As String, ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long)
 
     Dim img As cfImageGDIP
-    
-    On Error GoTo addImagesToStdCollection_Error
+    Dim eventHost As cImageEventHost
+
+    On Error GoTo addImagesToHitAndEventCollections_Error
 
     Set img = New cfImageGDIP
     
-    img.Bitmap = bmp
+    ' add the image bitmap to a collection complete with the size, location characteristics to allow hit testing
+    
+    img.bitmap = bmp
     img.Left = x
     img.Top = y
     img.Width = w
-    img.height = h
+    img.Height = h
     
-    ' lock if using alpha hit-test
-    'img.LockBitmap
+    ' lock the bitmap to allow alpha hit-testing
+    img.LockBitmap
     
-    ' store in global list (for hit-testing)
-    gImages.Add img
+    ' store in global hit-testing collection
+    gHitTestCollection.Add img
     
-    ' create event host
-    Dim host As cImageHost
-    Set host = New cImageHost
+                            
+    ' Now add the same image bitmap to a separate collection to act as a sink host for event trapping on each distinct image layer
     
-    Set host.img = img
-    host.Index = mHosts.Count + 1
+    ' create event host of class cImageEventHost
+    Set eventHost = New cImageEventHost
     
-    mHosts.Add host
+    ' use eventhost to capture/enable withEvents for the image bitmap, ultimately of type cfImageGDIP (see cImageEventHost)
+    Set eventHost.img = img
+    
+    ' pass the index to the class to allow layer identification by ID number.
+    eventHost.Index = mEventHostCollection.Count + 1
+    
+    eventHost.Name = thisName
+    
+    ' pop each cfImageGDIP image wrapped in an event host, now withEvents and event target code into the collection,
+    mEventHostCollection.Add eventHost
 
     On Error GoTo 0
     Exit Sub
 
-addImagesToStdCollection_Error:
+addImagesToHitAndEventCollections_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addImagesToStdCollection of Form Form1"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addImagesToHitAndEventCollections of Form Form1"
 
 End Sub
+
+

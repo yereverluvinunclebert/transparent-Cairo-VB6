@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget minimumVersion="4.5">
+
+<!--
+	 Steampunk Clock Calendar
+	 Written by: Dean Beedell
+
+	 Copyright (C) 2010 All Rights Reserved.
+
+	 Sounds - Modified from the original on Freesound (http://www.freesound.org/usersViewSingle.php?id=37876)
+	 Originating from user digifishmusic, Glaneur_de_sons, acclivity, BMacZero, Benboncan, Wrylytucker, KJackson, Cognito Perceptu and RHumphries
+
+	 Graphics - all my own, with inspiration from the PC game of Jeff Wayne's War of the Worlds.
+
+	 Javascript Code - All my own.
+
+	 XML file - The original XML file was created using the photoshop converter from Yahoo.
+
+	 Version 2.9 (MkII)
+
+-->
+
+	<window
+		title		= "SteamPunk Clock Calendar"
+		name		= "mainWindow"
+		width		= "1000"
+		height		= "780"
+		visible		= "false"
+		shadow		= "false"
+	>
+
+                <image
+			src = "Resources/help-bottom.png"
+			name = "helpBottom"
+			hOffset = "150"
+			vOffset  = "0"
+			opacity = "255"
+                        width = "781"
+                        visible = "false"
+		/>
+
+
+                <image
+			src = "Resources/backscreen.png"
+			name = "backscreen"
+			hOffset = "350"
+			vOffset  = "225"
+			opacity = "255"
+                        visible = "false"
+		/>
+
+                <image
+			src = "Resources/brassbuttonB.png"
+			name = "brassButtonB"
+			hOffset = "585"
+			vOffset  = "200"
+			opacity = "255"
+			visible = "false"
+			tooltip = "toggle back screen"
+                />
+                <image
+			src = "Resources/brassbuttonT.png"
+			name = "brassButtonT"
+			hOffset = "315"
+			vOffset  = "200"
+			opacity = "255"
+			visible = "false"
+			tooltip = "toggle the time machine images"
+                />
+
+
+
+                <image
+			src = "Resources/screentop.png"
+			name = "screentop"
+			hOffset = "340"
+			vOffset  = "215"
+			opacity = "255"
+                        visible = "true"
+			tooltip = "raise kinematoscope"
+		/>
+
+                <image
+			src = "Resources/1888.jpg"
+			name = "pastimage"
+			width = "240"
+			height = "196"
+			hOffset = "345"
+			vOffset  = "25"
+			opacity = "220"
+                        visible = "true"
+			tooltip = "War of the Worlds"
+		/>
+
+
+                <image
+			src = "Resources/screen.png"
+			name = "clearscreen"
+			hOffset = "340"
+			vOffset  = "20"
+			opacity = "255"
+                        visible = "false"
+			tooltip = "raise kinematoscope"
+		/>
+
+
+                <image
+			src = "Resources/screen.png"
+			name = "clearscreen2"
+			hOffset = "340"
+			vOffset  = "20"
+			opacity = "1"
+			<zorder>6</zorder>
+                        visible = "true"
+			tooltip = "raise kinematoscope"
+		/>
+
+                <image
+			src = "Resources/lhHinge.png"
+			name = "lhHinge"
+			visible = "false"
+			hOffset = "338"
+			vOffset  = "170"
+			opacity = "255"
+		/>
+
+                <image
+			src = "Resources/rhHinge.png"
+			name = "rhHinge"
+			visible = "false"
+			hOffset = "545"
+			vOffset  = "170"
+			opacity = "255"
+		/>
+
+
+
+                <image
+			src = "Resources/pendulumSet.png"
+			name = "pendulumSet"
+			visible = "false"
+			hOffset = "587"
+			vOffset  = "292"
+			opacity = "255"
+			width = "46"
+			height = "192"
+			hRegistrationPoint = "23"
+			vRegistrationPoint = "192"
+		/>
+
+		<image
+		        src = "Resources/dropdown.png"
+			name = "dropdown"
+			hOffset = "319"
+			vOffset  = "219"
+			opacity = "255"
+		/>
+
+		<image
+			src = "Resources/drawstring.png"
+			name = "drawstring"
+			hOffset = "452"
+			vOffset  = "420"
+			opacity = "255"
+			tooltip = "click me"
+		/>
+
+
+
+                <image
+			src = "Resources/brassbuttonH.png"
+			name = "brassbuttonH"
+			hOffset = "290"
+			vOffset  = "255"
+			opacity = "255"
+			visible = "true"
+			tooltip = "click me for help"
+                />
+                <image
+			src = "Resources/brassbuttonA.png"
+			name = "brassbuttonA"
+			hOffset = "290"
+			vOffset  = "285"
+			opacity = "255"
+			visible = "true"
+			tooltip = "Click here to set or edit an alarm"
+                />
+                <image
+			src = "Resources/brassbuttonL.png"
+			name = "brassbuttonL"
+			hOffset = "290"
+			vOffset  = "315"
+			opacity = "255"
+			visible = "true"
+			tooltip = "loud/quiet"
+                />
+                <image
+			src = "Resources/brassbuttonM.png"
+			name = "brassbuttonM"
+			hOffset = "290"
+			vOffset  = "345"
+			opacity = "255"
+			visible = "true"
+			tooltip = "mute chimes toggle on/off"
+                />
+
+                <image
+			src = "Resources/brassbuttonP.png"
+			name = "brassbuttonP"
+			hOffset = "290"
+			vOffset  = "375"
+			opacity = "255"
+			visible = "true"
+			tooltip = "stop/start the pendulum"
+                />
+                <image
+			src = "Resources/woodenBar.png"
+			name = "woodenBar"
+			hOffset = "4"
+			vOffset  = "259"
+			opacity = "255"
+			visible = "false"
+		/>
+                <image
+			src = "Resources/bigdropdown.png"
+			name = "bigdropdowncanvas"
+			hOffset = "00"
+			vOffset  = "255"
+			opacity = "255"
+			visible = "false"
+		/>
+
+                <image
+			src = "Resources/brassbutton1.png"
+			name = "helpbrassbutton"
+			hOffset = "0"
+			vOffset  = "255"
+			opacity = "255"
+			visible = "false"
+			tooltip = "click me for next help canvas"
+                />
+
+                <image
+			src = "Resources/helptext.png"
+			name = "helptext"
+			hOffset = "0"
+			vOffset  = "255"
+			opacity = "255"
+			visible = "false"
+		/>
+
+                <image
+			src = "Resources/termstext.png"
+			name = "termstext"
+			hOffset = "20"
+			vOffset  = "265"
+			opacity = "255"
+			visible = "false"
+		/>
+
+                <image
+			src = "Resources/alarmtext.png"
+			name = "alarmtext"
+			hOffset = "0"
+			vOffset  = "285"
+			opacity = "255"
+			visible = "false"
+		/>
+
+		<image
+			src = "Resources/drawstring.png"
+			name = "helpDrawstring"
+			hOffset = "136"
+			vOffset  = "686"
+			opacity = "255"
+			tooltip = "click me"
+       			visible = "false"
+		/>
+
+
+
+		<image
+			src		= "Resources/backgroundItems.png"
+			name		= "backgroundItems"
+			hOffset		= "321"
+			vOffset		= "223"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/bottomBoxSet.png"
+			name		= "bottomBoxSet"
+			hOffset		= "319"
+			vOffset		= "350"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/heaterCoil.png"
+			name		= "heaterCoil"
+			hOffset		= "336"
+			vOffset		= "323"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/orangeHeaterGlow.png"
+			name		= "orangeHeaterGlow"
+			hOffset		= "367"
+			vOffset		= "334"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/ampmletterm.png"
+			name		= "meridienLetterSet"
+			hOffset		= "574"
+			vOffset		= "345"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/ampmlettera.png"
+			name		= "antipostLetterSet"
+			hOffset		= "552"
+			vOffset		= "345"
+			opacity		= "255"
+       		/>
+
+		<image
+			src		= "Resources/bigLetterJ.png"
+			name		= "monthLetter1LetterSet"
+			hOffset		= "375"
+			vOffset		= "271"
+			opacity		= "255"
+			zorder          = "6"
+       		/>
+
+		<image
+			src		= "Resources/smalllettern.png"
+			name		= "monthLetter3SetLetterSet"
+			hOffset		= "408"
+			vOffset		= "271"
+			opacity		= "255"
+			zorder          = "6"
+       		/>
+
+		<image
+			src		= "Resources/smallletteru.png"
+			name		= "monthLetter2LetterSet"
+			hOffset		= "391"
+			vOffset		= "271"
+			opacity		= "255"
+			zorder          = "6"
+       		/>
+
+		<image
+			src		= "Resources/big9.png"
+			name		= "yearNumber4LetterSet"
+			hOffset		= "500"
+			vOffset		= "270"
+			opacity		= "255"
+			zorder          = "6"
+		/>
+
+		<image
+			src		= "Resources/big5.png"
+			name		= "yearNumber3LetterSet"
+			hOffset		= "481"
+			vOffset		= "270"
+			opacity		= "255"
+			zorder          = "6"
+		/>
+
+		<image
+			src		= "Resources/big8.png"
+			name		= "yearNumber2LetterSet"
+			hOffset		= "463"
+			vOffset		= "270"
+			opacity		= "255"
+			zorder          = "6"
+		/>
+
+		<image
+			src		= "Resources/big1.png"
+			name		= "yearNumber1LetterSet"
+			hOffset		= "444"
+			vOffset		= "270"
+			opacity		= "255"
+			zorder          = "6"
+		/>
+
+		<image
+			src		= "Resources/big2.png"
+			name		= "dayNumber2LetterSet"
+			hOffset		= "355"
+			vOffset		= "270"
+			opacity		= "255"
+			zorder          = "6"
+       		/>
+
+		<image
+			src		= "Resources/big1.png"
+			name		= "dayNumber1LetterSet"
+			hOffset		= "337"
+			vOffset		= "270"
+			opacity		= "255"
+			zorder          = "6"
+       		/>
+
+		<image
+			src = "Resources/flag01.png"
+			name = "flag01"
+			hOffset = "585"
+			vOffset  = "220"
+			tooltip = "There are no alarms set"
+			opacity = "255"
+			visible = "true"
+		/>
+		<image
+			src = "Resources/flag02.png"
+			name = "flag02"
+			hOffset = "592"
+			vOffset  = "237"
+			tooltip = "There are no alarms set"
+			opacity = "255"
+			visible = "true"
+		/>
+
+		<image
+			src = "Resources/flag03.png"
+			name = "flag03"
+			hOffset = "603"
+			vOffset  = "254"
+			tooltip = "There are no alarms set"
+			opacity = "255"
+			visible = "true"
+		/>
+
+		<image
+			src = "Resources/flag04.png"
+			name = "flag04"
+			hOffset = "608"
+			vOffset  = "271"
+			tooltip = "There are no alarms set"
+			opacity = "255"
+			visible = "true"
+		/>
+
+		<image
+			src = "Resources/flag05.png"
+			name = "flag05"
+			hOffset = "611"
+			vOffset  = "288"
+			tooltip = "There are no alarms set"
+			opacity = "255"
+			visible = "true"
+		/>
+
+		<image
+			src = "Resources/crank-up.png"
+			name = "crank"
+			hOffset = "600"
+			vOffset  = "340"
+			tooltip = "Crank me down to turn off the sound"
+			opacity = "255"
+			visible = "false"
+		/>
+
+		<image
+			src		= "Resources/topShelf.png"
+			name		= "topShelf"
+			hOffset		= "319"
+			vOffset		= "221"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/mainCasingSurround.png"
+			name		= "mainCasingSurround"
+			hOffset		= "314"
+			vOffset		= "256"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/cableCorner.png"
+			name		= "cableCorner"
+			hOffset		= "328"
+			vOffset		= "230"
+			opacity		= "255"
+		/>
+
+                <image
+			src = "Resources/brassbuttonS.png"
+			name = "brassButtonS"
+			hOffset = "330"
+			vOffset  = "215"
+			opacity = "255"
+			visible = "true"
+			tooltip = "toggle back screen"
+                />
+                <image
+			src = "Resources/brassbuttonW.png"
+			name = "brassButtonW"
+			hOffset = "335"
+			vOffset  = "240"
+			opacity = "255"
+			visible = "true"
+			tooltip = "toggle weekday indicator"
+                />
+		<image
+			src = "Resources/topDigitalClock.png"
+			name = "topDigitalClock"
+			hOffset = "350"
+			vOffset  = "217"
+			opacity = "255"
+		/>
+
+
+
+		<image
+			src		= "Resources/small0.png"
+			name		= "minutesNumber2Set"
+			hOffset		= "435"
+			vOffset		= "225"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/small0.png"
+			name		= "minutesNumber1Set"
+			hOffset		= "456"
+			vOffset		= "225"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/small0.png"
+			name		= "hour2LetterSet"
+			hOffset		= "407"
+			vOffset		= "225"
+			opacity		= "255"
+		/>
+
+		<image
+			src		= "Resources/small0.png"
+			name		= "hour1LetterSet"
+			hOffset		= "386"
+			vOffset		= "225"
+			opacity		= "255"
+		/>
+                <frame name="myFrame">
+
+        		<image
+        			src		= "Resources/cableWheelSet.png"
+        			name		= "cableWheelSet"
+        			hOffset		= "507"
+        			vOffset		= "395"
+        			opacity		= "255"
+        		/>
+        		<image
+        			src		= "Resources/bar.png"
+        			name		= "bar"
+        			hOffset		= "309"
+        			vOffset		= "366"
+        			opacity		= "255"
+        		/>
+        		<image
+         		       name = "sliderSet"
+                               src = "Resources/sliderSet.png"
+                               hOffset = "336"
+                               vOffset  = "347"
+      		        />
+
+                        <image opacity="255" width="135"  hOffset="430" vOffset="405" name="cable" src="Resources/cable.png"/>
+                </frame>
+
+		<image
+			src = "Resources/chain.png"
+			name = "chain"
+			hOffset = "595"
+			vOffset  = "275"
+			opacity = "255"
+			visible = "true"
+       			tooltip = "pulling this chain will silence the ticks"
+		/>
+
+
+
+		<image
+			src = "Resources/clockSet.png"
+			name = "clockSet"
+			hOffset = "505"
+			vOffset  = "237"
+			opacity = "255"
+			tooltip = "click the clock face to set the counters to today"
+		/>
+
+		<image
+			src		= "Resources/hourHand.png"
+			name		= "hourHand"
+			hOffset		= "577"
+			vOffset		= "290"
+			opacity		= "255"
+			width           = "68"
+			height          = "68"
+			hRegistrationPoint = "32"
+			vRegistrationPoint = "32"
+
+		/>
+
+		<image
+			src		= "Resources/minuteHand.png"
+			name		= "minuteHand"
+			hOffset		= "577"
+			vOffset		= "290"
+			opacity		= "255"
+			width           = "84"
+			height          = "84"
+			hRegistrationPoint = "42"
+			vRegistrationPoint = "42"
+
+		/>
+		<image
+			src		= "Resources/minuteHand.png"
+			name		= "secondHand"
+			hOffset		= "577"
+			vOffset		= "290"
+			opacity		= "255"
+			width           = "84"
+			height          = "84"
+			hRegistrationPoint = "42"
+			vRegistrationPoint = "42"
+
+		/>
+
+                <image
+			src		= "Resources/hole.png"
+			name		= "hole"
+			hOffset		= "574"
+			vOffset		= "286"
+			opacity		= "255"
+
+		/>
+
+                <image
+			src		= "Resources/grommet.png"
+			name		= "grommet"
+			hOffset		= "575"
+			vOffset		= "398"
+			opacity		= "255"
+
+		/>
+
+		<image
+			src		= "Resources/pin-shadow.png"
+			name		= "pin"
+			hOffset		= "580"
+			vOffset		= "407"
+			opacity		= "255"
+		/>
+</widget>

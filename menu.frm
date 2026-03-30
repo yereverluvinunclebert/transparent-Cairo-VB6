@@ -25,6 +25,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'---------------------------------------------------------------------------------------
+' Module    : menuForm
+' Author    : beededea
+' Date      : 29/03/2026
+' Purpose   : Not visible at runtime, provides a right click menu to the main form.
+'---------------------------------------------------------------------------------------
+
 
 Option Explicit
 

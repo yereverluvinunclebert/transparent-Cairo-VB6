@@ -1,4 +1,11 @@
 Attribute VB_Name = "mGDIPImageList"
+'---------------------------------------------------------------------------------------
+' Module    : mGDIPImageList
+' Author    : beededea
+' Date      : 29/03/2026
+' Purpose   : Module to support cGdipImageList & cTBImageList, subs, functions and API declarations.
+'---------------------------------------------------------------------------------------
+
 Option Explicit
 
 Public Declare Function CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Dest As Any, Src As Any, ByVal cb As Long) As Long
@@ -669,7 +676,7 @@ End Function
 '
 Public Sub resizeAndLoadImgToDict(ByRef thisDictionary As Object, ByVal Key As String, ByVal strFilename As String, ByVal Width As Long, ByVal Height As Long, Optional ByVal fullStringKey As String = "", Optional ByVal ImageOpacity As Integer)
 
-    Dim thiskey As String: thiskey = 0
+    Dim thisKey As String: thisKey = 0
     Dim encoderCLSID As CLSID
     Dim bytesFromFile() As Byte
     Dim Strm As stdole.IUnknown
@@ -706,16 +713,16 @@ Public Sub resizeAndLoadImgToDict(ByRef thisDictionary As Object, ByVal Key As S
     'override any key
     If fullStringKey = "" Then
         ' create a unique key string
-        thiskey = Key
+        thisKey = Key
     Else
-        thiskey = fullStringKey
+        thisKey = fullStringKey
     End If
     
     ' add the bitmap to the dictionary collection
-    If thisDictionary.Exists(thiskey) Then
-        thisDictionary.Remove thiskey
+    If thisDictionary.Exists(thisKey) Then
+        thisDictionary.Remove thisKey
     End If
-    thisDictionary.Add thiskey, picBitmap
+    thisDictionary.Add thisKey, picBitmap
 
    On Error GoTo 0
    Exit Sub
@@ -739,7 +746,7 @@ End Sub
 '
 Public Function loadResizeGDIPImage(ByRef thisDictionary As Object, ByVal Key As String, ByVal strFilename As String, ByVal Width As Long, ByVal Height As Long, Optional ByVal fullStringKey As String = "", Optional ByVal ImageOpacity As Integer) As Long
 
-    Dim thiskey As String: thiskey = 0
+    Dim thisKey As String: thisKey = 0
     Dim encoderCLSID As CLSID
     Dim bytesFromFile() As Byte
     Dim Strm As stdole.IUnknown
