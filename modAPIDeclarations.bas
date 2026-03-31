@@ -22,7 +22,7 @@ Public gSngOpacity As Single
 
 ' functions from user32 to get/set Window characteristics , opacity &c
 Public Declare Function GetWindowLong Lib "user32.dll" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
-Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+'Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Public Declare Function SetLayeredWindowAttributes Lib "user32" ( _
                 ByVal hwnd As Long, _
                 ByVal crKey As Long, _

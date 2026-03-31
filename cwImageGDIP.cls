@@ -194,9 +194,6 @@ Public Property Let Left(ByVal newValue As Long)
     
     End If
 
-
-
-
    On Error GoTo 0
    Exit Property
 

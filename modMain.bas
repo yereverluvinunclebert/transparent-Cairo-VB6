@@ -96,6 +96,11 @@ Attribute VB_Name = "modMain"
 ' Tasks?
 ' ======
 
+' test with TB
+' TBimageList ImageExists
+' TBimageList bitmap
+' TBimageList RemoveAll
+
 ' lockBitmap GdipBitmapLockBits research
 ' stride and scan0 - research
 
@@ -258,7 +263,7 @@ End Sub
 ' Purpose   : All this subroutine does at the moment is to set the screenTwipsPerPixel
 '---------------------------------------------------------------------------------------
 '
-Public Function monitorProperties()
+Public Sub monitorProperties()
 
     ' only calling TwipsPerPixelX/Y once on startup
     On Error GoTo monitorProperties_Error
@@ -267,13 +272,13 @@ Public Function monitorProperties()
     screenTwipsPerPixelY = fTwipsPerPixelY
 
     On Error GoTo 0
-    Exit Function
+    Exit Sub
 
 monitorProperties_Error:
 
      MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure monitorProperties of Form frmMain"
     
-End Function
+End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : resolveVB6SizeBug

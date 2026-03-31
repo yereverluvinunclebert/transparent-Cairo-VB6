@@ -10,26 +10,26 @@ Option Explicit
 
 ' --- Win32 API Declarations ---
 
-Private Declare Function GetMessage Lib "user32" Alias "GetMessageA" (lpMsg As Msg, ByVal hWnd As Long, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long) As Long
+Private Declare Function GetMessage Lib "user32" Alias "GetMessageA" (lpMsg As Msg, ByVal hwnd As Long, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long) As Long
 Private Declare Function TranslateMessage Lib "user32" (lpMsg As Msg) As Long
 Private Declare Function DispatchMessage Lib "user32" Alias "DispatchMessageA" (lpMsg As Msg) As Long
-Private Declare Function ShowWindow Lib "user32" (ByVal hWnd As Long, ByVal nCmdShow As Long) As Long
-Private Declare Function UpdateWindow Lib "user32" (ByVal hWnd As Long) As Long
-Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" (ByVal dwExStyle As Long, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, lpParam As Any) As Long
+Private Declare Function ShowWindow Lib "user32" (ByVal hwnd As Long, ByVal nCmdShow As Long) As Long
+Private Declare Function UpdateWindow Lib "user32" (ByVal hwnd As Long) As Long
+Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" (ByVal dwExStyle As Long, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, lpParam As Any) As Long
 Private Declare Function RegisterClassEx Lib "user32" Alias "RegisterClassExA" (pcWndClassEx As WNDCLASSEX) As Integer
 Private Declare Function LoadCursor Lib "user32" Alias "LoadCursorA" (ByVal hInstance As Long, ByVal lpCursorName As Long) As Long
 Private Declare Function UnregisterClass Lib "user32" Alias "UnregisterClassA" (ByVal lpClassName As String, ByVal hInstance As Long) As Long
-Private Declare Function DestroyWindow Lib "user32" (ByVal hWnd As Long) As Long
-Private Declare Function DefWindowProc Lib "user32" Alias "DefWindowProcA" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Private Declare Function DestroyWindow Lib "user32" (ByVal hwnd As Long) As Long
+Private Declare Function DefWindowProc Lib "user32" Alias "DefWindowProcA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 Private Declare Sub PostQuitMessage Lib "user32" (ByVal nExitCode As Long)
-Private Declare Function BeginPaint Lib "user32" (ByVal hWnd As Long, lpPaint As PAINTSTRUCT) As Long
-Private Declare Function EndPaint Lib "user32" (ByVal hWnd As Long, lpPaint As PAINTSTRUCT) As Long
-Private Declare Function GetClientRect Lib "user32" (ByVal hWnd As Long, lpRect As RECT) As Long
+Private Declare Function BeginPaint Lib "user32" (ByVal hwnd As Long, lpPaint As PAINTSTRUCT) As Long
+Private Declare Function EndPaint Lib "user32" (ByVal hwnd As Long, lpPaint As PAINTSTRUCT) As Long
+Private Declare Function GetClientRect Lib "user32" (ByVal hwnd As Long, lpRect As RECT) As Long
 Private Declare Function DrawText Lib "user32" Alias "DrawTextA" (ByVal hDC As Long, ByVal lpStr As String, ByVal nCount As Long, lpRect As RECT, ByVal wFormat As Long) As Long
-Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
-Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
-Private Declare Function MessageBox Lib "user32" Alias "MessageBoxA" (ByVal hWnd As Long, ByVal lpText As String, ByVal lpCaption As String, ByVal wType As Long) As Long
-Private Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+'Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+'Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
+Private Declare Function MessageBox Lib "user32" Alias "MessageBoxA" (ByVal hwnd As Long, ByVal lpText As String, ByVal lpCaption As String, ByVal wType As Long) As Long
+Private Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
 ' --- Win32 Type Declarations ---
 Public Type RECT
@@ -64,13 +64,13 @@ Private Type WNDCLASSEX
 End Type
 
 Private Type POINTAPI
-    X As Long
-    Y As Long
+    x As Long
+    y As Long
 End Type
 
 ' --- MSG structure ---
 Private Type Msg
-    hWnd As Long
+    hwnd As Long
     message As Long
     wParam As Long
     lParam As Long
@@ -124,7 +124,7 @@ Public hVBFormHwnd As Long
 ' Purpose   : Custom Window Procedure (callback)
 '---------------------------------------------------------------------------------------
 '
-Private Function MainWndProc(ByVal hWnd As Long, ByVal message As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Private Function MainWndProc(ByVal hwnd As Long, ByVal message As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
     Dim udtRect As RECT
     Dim hDC As Long
@@ -136,10 +136,10 @@ Private Function MainWndProc(ByVal hWnd As Long, ByVal message As Long, ByVal wP
     If message = WM_PAINT Then
 
         ' Retrieves the coordinates of the client area
-        GetClientRect hWnd, udtRect
+        GetClientRect hwnd, udtRect
         
         ' Get a GDI handle to a device context
-        hDC = BeginPaint(hWnd, ps) ' required for WM_PAINT handling
+        hDC = BeginPaint(hwnd, ps) ' required for WM_PAINT handling
         
         ' set the position and size of the user defined text rectangle
         udtRect.Left = 150
@@ -151,7 +151,7 @@ Private Function MainWndProc(ByVal hWnd As Long, ByVal message As Long, ByVal wP
         
         ' draw the text at the location, centered
         DrawText hDC, thisText, Len(thisText), udtRect, DT_CENTER
-        EndPaint hWnd, ps
+        EndPaint hwnd, ps
         
         ' now we paint the image using Cairo, Cairo HAS to load from file as the process to get Cairo to load from a collection is rather tricky using VB6 (Cairo requires a callback as input)
         Call drawAlphaPngCairo(thisHDC, hWindowHwnd, App.Path & "\player.png", 50, 350)
@@ -173,7 +173,7 @@ Private Function MainWndProc(ByVal hWnd As Long, ByVal message As Long, ByVal wP
     End If
         
      ' Default handling - return value and ensure that every message is processed
-     MainWndProc = DefWindowProc(hWnd, message, wParam, lParam)
+     MainWndProc = DefWindowProc(hwnd, message, wParam, lParam)
 
     On Error GoTo 0
     Exit Function
@@ -190,7 +190,7 @@ End Function
 ' Purpose   : Entry Point: Create and run the window
 '---------------------------------------------------------------------------------------
 '
-Private Function createAPIWindow(ByVal MyWndProc As Long, ByVal szWindowClass As String, ByVal szWindowTitle As String, ByVal X As Long, ByVal Y As Long, ByVal CX As Long, ByVal CY As Long) As Long
+Private Function createAPIWindow(ByVal MyWndProc As Long, ByVal szWindowClass As String, ByVal szWindowTitle As String, ByVal x As Long, ByVal y As Long, ByVal CX As Long, ByVal CY As Long) As Long
     
     Dim wcex As WNDCLASSEX
 
@@ -227,7 +227,7 @@ Private Function createAPIWindow(ByVal MyWndProc As Long, ByVal szWindowClass As
                               szWindowClass, _
                               szWindowTitle, _
                               WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or WS_OVERLAPPEDWINDOW, _
-                              X, Y, CX, CY, 0, 0, App.hInstance, 0)
+                              x, y, CX, CY, 0, 0, App.hInstance, 0)
                               
     If hWindowHwnd = 0 Then
         MsgBox "Failed to create the window!"
@@ -320,13 +320,13 @@ End Function
 ' Purpose   : determine screen details, initiate the window, pass address of MainWndProc to subclass, so VB6 can intercept messages such as WM_PAINT
 '---------------------------------------------------------------------------------------
 '
-Public Function initiateAPIWindow(ByVal szWindowTitle As String, ByVal szWindowClass As String, Optional ByVal X As Long = CW_USEDEFAULT, Optional ByVal Y As Long = CW_USEDEFAULT, Optional ByVal CX As Long = CW_USEDEFAULT, Optional ByVal CY As Long = CW_USEDEFAULT) As Long
+Public Function initiateAPIWindow(ByVal szWindowTitle As String, ByVal szWindowClass As String, Optional ByVal x As Long = CW_USEDEFAULT, Optional ByVal y As Long = CW_USEDEFAULT, Optional ByVal CX As Long = CW_USEDEFAULT, Optional ByVal CY As Long = CW_USEDEFAULT) As Long
     On Error GoTo initiateAPIWindow_Error
     
     'Call configWindowParams
 
     'initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, windowSize.x, windowSize.y)
-    initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, X, Y, 500, 500)
+    initiateAPIWindow = createAPIWindow(AddressOf MainWndProc, szWindowClass, szWindowTitle, x, y, 500, 500)
 
     On Error GoTo 0
     Exit Function
@@ -347,7 +347,7 @@ End Function
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 '
-Public Function ButtonWndProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Public Function ButtonWndProc(ByVal hwnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
     On Error GoTo ButtonWndProc_Error
 
@@ -367,7 +367,7 @@ Public Function ButtonWndProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal wPar
    
     'Since in MyCreateWindow we made the default window proc
     'this procedure, we have to call the old one using CallWindowProc
-    ButtonWndProc = CallWindowProc(gButOldProc&, hWnd&, uMsg&, wParam&, lParam&)
+    ButtonWndProc = CallWindowProc(gButOldProc&, hwnd&, uMsg&, wParam&, lParam&)
 
     On Error GoTo 0
     Exit Function
