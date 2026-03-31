@@ -15,7 +15,7 @@ However, the idea is to move away from low level Windows specific graphic framew
 
 <img width="1026" height="900" alt="cpu-XML-GDIP" src="https://github.com/user-attachments/assets/e089bdaa-f48a-4f25-b4a7-2c138339b8b6" />
 
-**Fig02. This program displaying PNG images placed from an imagelist onto a transparent form using GDI+. ** 
+**Fig02. This program displaying PNG images placed from an imagelist onto a transparent form using GDI+.** 
 
 
 Image above shows good progress replicating an existing RichClient program in looks (if not yet functionality), success in placing multiple images onto the desktop using transparent PNGs, the size and location details read from a PSD file via an extracted XML descriptor, similarly extracted images are then read into a dictionary/imagelist, then placed lightning-fast onto the display using GDI+.
@@ -24,7 +24,7 @@ Working with GDI+ as a proof of concept until the Cairo elements are working as 
 
 <img width="1252" height="699" alt="trinket0001" src="https://github.com/user-attachments/assets/9be0e165-acee-4041-846a-504ae2bcabd4" />
 
-**Fig03. This program showing a mouseDown on a layer with transparency, raising and handling events. ** 
+**Fig03. This program showing a mouseDown on a layer with transparency, raising and handling events.** 
 
 
 The CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to this new Cairo implementation will not help much with a 64bit implementation. The code to the Cairo wrapper is available though and in time should be compileable to a 64bit version using TwinBasic.
