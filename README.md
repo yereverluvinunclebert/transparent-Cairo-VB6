@@ -9,7 +9,7 @@ This program runs using VB6 or TwinBasic. Eventually it will use the Cairo wrapp
 
 **Fig01. Showing Steamydock, images placed on a transparent form using GDI+.** 
 
-However, the idea is to move away from low level Windows specific graphic frameworks and attempt the same using multi-platform capable graphics framework in the hope that soon these will be able to achieve what I am looking for in order to be able to create layered transparent image apps with events, properties and controlled click-through - https://github.com/twinbasic/twinbasic/issues/2167
+However, the idea is eventually to move away from low level Windows specific graphic frameworks and attempt the same using multi-platform capable graphics frameworks (cairo) in the hope that soon these will be able to achieve what I am looking for - in order to be able to create layered transparent image apps with events, properties and controlled click-through transparencies - https://github.com/twinbasic/twinbasic/issues/2167
 
 <img width="1026" height="900" alt="cpu-XML-GDIP" src="https://github.com/user-attachments/assets/e089bdaa-f48a-4f25-b4a7-2c138339b8b6" />
 
