@@ -169,10 +169,16 @@ End Sub
 '
 Private Sub Form_Unload(Cancel As Integer)
     On Error GoTo Form_Unload_Error
+    
+    Dim img As cfImageGDIP
 
     If gPrevWndProc <> 0 Then
         SetWindowLong Me.hwnd, GWL_WNDPROC, gPrevWndProc
     End If
+
+    For Each img In gHitTestCollection
+        img.UnlockBitmap
+    Next
 
     On Error GoTo 0
     Exit Sub
@@ -466,7 +472,7 @@ Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName A
     img.Width = w
     img.Height = h
     
-    ' lock the bitmap to allow alpha hit-testing
+    ' lock the bitmap copy to allow alpha hit-testing
     img.LockBitmap
     
     ' store in global hit-testing collection

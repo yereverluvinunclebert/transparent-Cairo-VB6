@@ -66,6 +66,9 @@ End Sub
 '
 Private Sub Img_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     On Error GoTo Img_MouseMove_Error
+    
+    'MsgBox ("MouseMove For " & Name & " Layer No. " & Index & ". Co-ord.s X=" & x & " Y=" & y)
+
 
     'Debug.Print "Image"; Index; "MouseMove"; x; y
 

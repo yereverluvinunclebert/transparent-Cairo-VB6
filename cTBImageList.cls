@@ -152,7 +152,7 @@ End Property
 ' Procedure : Count
 ' Author    : beededea
 ' Date      : 04/01/2026
-' Purpose   : Obtain the current count of items in the dictionary
+' Purpose   : Obtain the current count of items in the TwinBasic collection
 '---------------------------------------------------------------------------------------
 '
 Public Property Get Count() As Long
@@ -296,7 +296,7 @@ End Property
 ' Procedure : ImageExists
 ' Author    : beededea
 ' Date      : 05/09/2025
-' Purpose   : Test to see if the item ImageExists in the dictionary
+' Purpose   : Test to see if the item ImageExists in the TwinBasic collection
 '---------------------------------------------------------------------------------------
 '
 Public Property Get ImageExists(Key As String) As Boolean
@@ -318,7 +318,7 @@ End Property
 ' Procedure : Remove
 ' Author    : beededea
 ' Date      : 04/01/2026
-' Purpose   : Remove a single item from the dictionary
+' Purpose   : Remove a single item from the TwinBasic collection
 '---------------------------------------------------------------------------------------
 '
 Public Sub Remove(ByVal Key As String)
@@ -340,7 +340,7 @@ End Sub
 ' Procedure : Clear
 ' Author    : beededea
 ' Date      : 04/01/2026
-' Purpose   : Clear the whole image list
+' Purpose   : Clear the whole image list (TwinBasic collection)
 '---------------------------------------------------------------------------------------
 '
 Public Sub Clear()
@@ -364,7 +364,7 @@ End Sub
 ' Procedure : AddImage
 ' Author    : beededea
 ' Date      : 04/01/2026
-' Purpose   : Adds an image to the dictionary
+' Purpose   : Adds a VB6 Standard Picture image to the TwinBasic collection
 '---------------------------------------------------------------------------------------
 '
 Public Sub AddImage(ByVal Key As String, ByVal FilePath As String)
@@ -403,9 +403,7 @@ Public Sub AddImage(ByVal Key As String, ByVal FilePath As String)
         ' add the image to the dictionary collection
         mDict.Add pic, Key ' image followed by Key for a TB collection
     End If
-    
-
-    
+        
     On Error GoTo 0
     Exit Sub
 
@@ -418,7 +416,7 @@ End Sub
 ' Procedure : Picture
 ' Author    : beededea
 ' Date      : 04/01/2026
-' Purpose   : extracts the image from the dictionary using similar syntax to Rich Client
+' Purpose   : extracts a VB6 Standard Picture image from the TwinBasic collection using similar syntax to Rich Client
 '---------------------------------------------------------------------------------------
 '
 Public Function Picture(ByVal Key As String) As StdPicture
@@ -437,10 +435,53 @@ Picture_Error:
      MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Picture of Class Module cTBImageList"
 End Function
 
+'---------------------------------------------------------------------------------------
+' Procedure : Bitmap
+' Author    : beededea
+' Date      : 04/01/2026
+' Purpose   : just here to match the VB6 GDIP version syntax, functionality the same as the picture function above
+'             do we need a version that stores and extracts bitmaps only? If so, then we well need a stdPicture to GDIP bitmap conversion
+'---------------------------------------------------------------------------------------
+'
+Public Function bitmap(ByVal Key As String) As Long
+    Dim gpImage As Long: gpImage = 0
+    
+    On Error GoTo Picture_Error
+
+    If Not mDict.Exists(Key) Then Err.Raise 5, , "Image key not found"
+    
+    bitmap = mDict(Key)
+
+    On Error GoTo 0
+    Exit Function
+
+Picture_Error:
+
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Picture of Class Module cGdipImageList"
+End Function
 
 
-
-
+''---------------------------------------------------------------------------------------
+'' Procedure : GetImage
+'' Author    : beededea
+'' Date      : 04/01/2026
+'' Purpose   : Get a specific image by key from the TwinBasic collection
+'' Returns   : GpBitmap (NOT HBITMAP)
+''---------------------------------------------------------------------------------------
+''
+'Public Function GetImage(ByVal Key As String) As Long
+'    On Error GoTo GetImage_Error
+'
+'    If Not mDict.Exists(Key) Then Err.Raise 5, , "Image key not found"
+'    GetImage = mDict(Key)
+'
+'    On Error GoTo 0
+'    Exit Function
+'
+'GetImage_Error:
+'
+'     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure GetImage of Class Module cGdipImageList"
+'End Function
 
 
 

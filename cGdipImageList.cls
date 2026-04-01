@@ -387,6 +387,7 @@ Public Sub Clear()
         ' GDI+ delete
         GdipDisposeImage mDict(k) 'NOT DeleteObject mDict(k)
     Next
+    
     mDict.RemoveAll
 
     On Error GoTo 0
@@ -423,7 +424,7 @@ End Function
 ' Procedure : AddImage
 ' Author    : beededea
 ' Date      : 04/01/2026
-' Purpose   : Adds an image to the dictionary
+' Purpose   : Adds a GDI+ bitmap to the dictionary
 '---------------------------------------------------------------------------------------
 '
 Public Sub AddImage(ByVal Key As String, ByVal FilePath As String)
@@ -479,14 +480,14 @@ End Function
 ' Purpose   : extracts an unmodified bitmap from the dictionary using new syntax
 '---------------------------------------------------------------------------------------
 '
-Public Function Bitmap(ByVal Key As String) As Long
+Public Function bitmap(ByVal Key As String) As Long
     Dim gpImage As Long: gpImage = 0
     
     On Error GoTo Picture_Error
 
     If Not mDict.Exists(Key) Then Err.Raise 5, , "Image key not found"
     
-    Bitmap = GetImage(Key)
+    bitmap = GetImage(Key)
 
     On Error GoTo 0
     Exit Function

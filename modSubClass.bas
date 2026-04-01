@@ -29,7 +29,8 @@ Public gHitTestCollection As Collection
 ' Procedure : SubclassProc
 ' Author    : beededea
 ' Date      : 25/03/2026
-' Purpose   : In the absence of real VB6 controls we have to replicate the functionality of determining the bounds of
+' Purpose   : Our subclassed event dispatcher.
+'             In the absence of real VB6 controls we have to replicate the functionality of determining the bounds of
 '             an image that will become a UI control. Our (invisible) form is sub-classed to intercept mouse-move and mouse-down
 '             messages, testing for screen vs local form position against a stored image in the hit test collection.
 '             If it is within the bounds then raise an event via the eventHost event capture sink.

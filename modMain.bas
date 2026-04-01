@@ -96,39 +96,37 @@ Attribute VB_Name = "modMain"
 ' Tasks?
 ' ======
 
-' test with TB
+' test with alternative XML file
+
+' test with TB - WIP
 ' TBimageList ImageExists
-' TBimageList bitmap
-' TBimageList RemoveAll
-
-' lockBitmap GdipBitmapLockBits research
-' stride and scan0 - research
-
-' rename the class files to match their exposed names
-
-' refer to an image object by name and change a property, text for chatGPT.
-'
-' I want to know how to globally declare and set image objects dynamically. For instance, the program might read an XML file to obtain
-' the name and x/y metrics for a sequential series of PNGs, therefore in the program I want to dynamically DIM and SET an image object
-' of class cfImageGDIP for each image in the XML, so that I can globally refer to each image object by name and change its
-' properties thus:
-'
-' ie. first image name read from the XML is "tardis" - change the width property - tardis.Width = 200
-'     second image name read from the XML is "player" - change the width property - player.Width = 200
-'
-' Note that the names of the various image objects will not be known until the XML is read.
-
-
-
-' Add a top layer image list for images that do not require responses to click events and allow full click-through.
+' TBimageList bitmap WIP - do we need an option to return a GDI+ bitmap, I think so
+' TBimageList RemoveAll - should not matter when compiled by TB
 
 ' Create a widget class comprising all the image objects
+
+' later
+' rename the class files to match their exposed names
+
+
+'    bitmap immutable while locked
+'
+'    If you redraw or replace a bitmap:
+'
+'        UnlockBitmap
+'        Set new bitmap
+'        LockBitmap
+
+
+' tooltips, use Faf's tooltip method for raising tooltips on items not automatically raising them.
+
+' Add a top layer image list for images that do not require responses to click events and allow full click-through.
 
 ' Why do we need to utilise a user-created window/form?
 '    For testing if for some reason we can't get the Cairo version working.
 '    A custom form is lightweight and program size can be reduced, the extra complexity and utility of a VB6 program.
+'    Don't do it until the whole lot is tested and working and after we have moved the code not being form-based.
 
-' user created timers - not required
 
 ' Status for Potential solution A - Cairo:
 ' ========================================
@@ -190,6 +188,9 @@ Attribute VB_Name = "modMain"
 ' createAPIWindow       The main process that does the majority of the Window initialisation and other GDI+ configuration
 ' mainWndProc           The routine where all the Cairo and GDI+ drawing is done, intercepting messages such as WM_PAINT
 
+' Other things to note for the future:
+
+' GdipBitmapLockBits can act as a future zero-copy bridge between GDI+ LockBits and a Cairo surface, used in high-speed gaming...
 
 Option Explicit
 
@@ -883,6 +884,7 @@ drawAlphaPngCairo_Error:
 
      MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure drawAlphaPngCairo of Form frmMain"
 End Sub
+
 
 
 

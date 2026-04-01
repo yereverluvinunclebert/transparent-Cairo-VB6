@@ -100,6 +100,8 @@ End Sub
 '
 Private Sub Class_Terminate()
     On Error GoTo Class_Terminate_Error
+    
+    Call UnlockBitmap
       
     ' The GDIP graphics are now deleted
     Call GdipDeleteGraphics(bitmap)
@@ -236,12 +238,10 @@ Public Property Let Top(ByVal newValue As Long)
     If mTop <> newValue Then mTop = newValue Else Exit Property
     
     If mTop = True Then
-    
+        
     Else
-    
+        
     End If
-    
-
 
    On Error GoTo 0
    Exit Property
@@ -1027,7 +1027,8 @@ End Sub
 ' Procedure : LockBitmap
 ' Author    : beededea
 ' Date      : 25/03/2026
-' Purpose   : lock the bitmap to allow alpha hit-testing
+' Purpose   : for each image to be added to the hit test collection we lock the bitmap to allow alpha hit-testing
+'             returns mScan0 and mStride (pointer and structure) later used in GetAlphaAt
 '---------------------------------------------------------------------------------------
 '
 Public Sub LockBitmap()
@@ -1043,12 +1044,17 @@ Public Sub LockBitmap()
     rct.Right = mWidth
     rct.Bottom = mHeight
     
+    ' GdipBitmapLockBits gives you direct memory access to a bitmap’s pixel buffer
     ' use GDIP to lock the bitmap that comprises the image, obtain Scan0 and Stride values used to determine Alpha transparency levels
     If GdipBitmapLockBits(mBitmap, rct, ImageLockModeRead, _
                           PixelFormat32bppARGB, mBmpData) = 0 Then
                           
+        ' a pointer to raw pixel data
         mScan0 = mBmpData.Scan0
+        
+        ' the distance across the specific image row structure for the image type (24,32bpp)
         mStride = mBmpData.Stride
+        
         mLocked = True
         
     End If
@@ -1104,10 +1110,11 @@ Private Function GetAlphaAt(ByVal x As Long, ByVal y As Long) As Byte
     If x < 0 Or y < 0 Then Exit Function
     If x >= mWidth Or y >= mHeight Then Exit Function
     
-    ' obtain a value for the pointer to determine the transparency at that location
+    ' obtain a value using the pointer and stride to determine the location and structure of the memory location that holds the alpha transparency at that location
     ptr = mScan0 + (y * mStride) + (x * 4)
     
-    ' return the value of the transparency as a byte
+    ' Read raw memory directly and return the value of the transparency as a byte
+    ' Alpha is the 4th byte (offset +3)
     CopyMemory GetAlphaAt, ByVal (ptr + 3), 1
 
     On Error GoTo 0

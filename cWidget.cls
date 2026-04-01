@@ -1050,6 +1050,7 @@ Public Sub LockBitmap()
     If GdipBitmapLockBits(mBitmap, rct, ImageLockModeRead, _
                           PixelFormat32bppARGB, mBmpData) = 0 Then
                           
+        ' a pointer to raw pixel data
         mScan0 = mBmpData.Scan0
         mStride = mBmpData.Stride
         mLocked = True
