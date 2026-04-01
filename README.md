@@ -1,11 +1,9 @@
 # Transparent-Cairo-VB6
 
-A test project using non-Windows-traditional methods of painting PNGs to a transparent VB6 form using a wrapper around Cairo/GDI+.
-This program is a test for replacing RichClient PNG graphic support with an alternative GDI+/Cairo drop-in replacement whilst also testing improved modern image handling within TwinBasic's native image collections.
+This program is a test for replacing Olaf Schmidt's RichClient PNG graphic support with an alternative GDI+/Cairo drop-in replacement whilst also testing improved modern image handling within TwinBasic's native image collections.
 
-This program runs using VB6 or TwinBasic. Eventually it will use the Cairo wrapper DLL and TLB found here https://github.com/VBForumsCommunity/VbCairo
-
-At the moment I am getting the program to operate with a combination of GDI+ functions as per my older program, Steamydock - (https://github.com/yereverluvinunclebert/SteamyDock) 
+This project uses non-VB6-traditional methods of painting PNGs to a transparent VB6 form using a wrapper around Cairo or GDI+.
+This program runs using VB6 or TwinBasic. Eventually it will use the Cairo wrapper DLL and TLB found here https://github.com/VBForumsCommunity/VbCairo. At the moment I am coding the program to operate with a combination of GDI+ functions, as per my older program, Steamydock - (https://github.com/yereverluvinunclebert/SteamyDock) 
 
 ![cogs](https://github.com/yereverluvinunclebert/SteamyDock/assets/2788342/ba617c24-0c77-4577-b211-47e1c05a4a5e)
 
