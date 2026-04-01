@@ -27,9 +27,9 @@ Working with GDI+ as a proof of concept until the Cairo elements are working as 
 
 The CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to this new Cairo implementation will not help much with a 64bit implementation. The code to the Cairo wrapper is available though and in time should be compileable to a 64bit version using TwinBasic.
 
-Status:
+**Status:**
 
-BASIC test program - Puts multiple images on screen using GDI+ with a right click menu on an invisible VB6 form using an image class that encapsulates the properties of each image. 
+A working test program - Puts multiple images on screen using GDI+ with a right click menu on an invisible VB6 form using an image class that encapsulates the properties of each image. 
 Each layer image is now identified via hit-testing and a click through any transparent area is passed to the layer below. Event raising for each layer is enabled and events handled.
 
 Currently ironing some bugs and then will be creating a widget class that will provide a 'home' for the images.
