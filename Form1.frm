@@ -34,7 +34,7 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
-Private WithEvents thisGDIPimage As cfImageGDIP
+Private WithEvents thisGDIPimage As cImageGDIP
 Attribute thisGDIPimage.VB_VarHelpID = -1
 
 Private mEventHostCollection As Collection
@@ -80,7 +80,7 @@ Public Sub vbFormSetup()
     sWidgetOpacity = "100"
     sWidgetZOrder = "2"
     
-    Set thisGDIPimage = New cfImageGDIP
+    Set thisGDIPimage = New cImageGDIP
         
     ' standard VB6 collections used for hit testing and event capture
     Set gHitTestCollection = New Collection
@@ -170,7 +170,7 @@ End Sub
 Private Sub Form_Unload(Cancel As Integer)
     On Error GoTo Form_Unload_Error
     
-    Dim img As cfImageGDIP
+    Dim img As cImageGDIP
 
     If gPrevWndProc <> 0 Then
         SetWindowLong Me.hwnd, GWL_WNDPROC, gPrevWndProc
@@ -249,7 +249,7 @@ End Sub
 ' Procedure : addThisImage
 ' Author    : beededea
 ' Date      : 27/03/2026
-' Purpose   : From the previously populated image list, creates an image of type cfImageGDIP with associated properties,
+' Purpose   : From the previously populated image list, creates an image of type cImageGDIP with associated properties,
 '             then adds hit testing and event handling for each layer
 '---------------------------------------------------------------------------------------
 '
@@ -262,7 +262,7 @@ Private Sub addThisImage(ByVal thisKey As String, ByVal thisX As Long, ByVal thi
     ' extract a bitmap from the previously populated image list
     thisBitmap = readImageFromDictionary(thisKey)
     
-    ' creates an image of type cfImageGDIP with associated properties
+    ' creates an image of type cImageGDIP with associated properties
     With thisGDIPimage
         .bitmap = thisBitmap
         .Left = thisX
@@ -299,7 +299,7 @@ End Sub
 ' Purpose   :  Creates a GDIP surface object from each and every PSD layer in the PSD file.
 '              For all the interactive UI elements it creates surface objects with corresponding keynames,
 '              locations and sizes as per the original PSD for each layer. The surfaces are populated from PNGs whose metric
-'              data are held in an extracted XML file. It creates an instance of each image using the cfImageGDIP class
+'              data are held in an extracted XML file. It creates an instance of each image using the cImageGDIP class
 '
 '              The images are stored as GDIP images within an imageList.
 '
@@ -457,12 +457,12 @@ End Sub
 '
 Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName As String, ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long)
 
-    Dim img As cfImageGDIP
+    Dim img As cImageGDIP
     Dim eventHost As cImageEventHost
 
     On Error GoTo addImagesToHitAndEventCollections_Error
 
-    Set img = New cfImageGDIP
+    Set img = New cImageGDIP
     
     ' add the image bitmap to a collection complete with the size, location characteristics to allow hit testing
     
@@ -484,15 +484,15 @@ Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName A
     ' create event host of class cImageEventHost
     Set eventHost = New cImageEventHost
     
-    ' use eventhost to capture/enable withEvents for the image bitmap, ultimately of type cfImageGDIP (see cImageEventHost)
-    Set eventHost.img = img
+    ' use eventhost to capture/enable withEvents for the image bitmap, ultimately of type cImageGDIP (see cImageEventHost)
+    Set eventHost.bubblingEventImg = img
     
     ' pass the index to the class to allow layer identification by ID number.
     eventHost.Index = mEventHostCollection.Count + 1
     
     eventHost.Name = thisName
     
-    ' pop each cfImageGDIP image wrapped in an event host, now withEvents and event target code into the collection,
+    ' pop each cImageGDIP image wrapped in an event host, now withEvents and event target code into the collection,
     mEventHostCollection.Add eventHost
 
     On Error GoTo 0

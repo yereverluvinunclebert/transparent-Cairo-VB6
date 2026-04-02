@@ -10,8 +10,8 @@ Attribute VB_Name = "modMain"
 
 ' Main program classes & modules:
 '   Form1                 The main VB6 form that provides the main program entry point. Invisible and used solely as a code holder for some routines.
-'   cfImageGDIP           The main class that provides the image properties, hit testing and raising events, uses GDI+ to paint.
-'   cImageEventHost       Eventhost bridge class to capture/enable withEvents for all the images of type cfImageGDIP within the collection.
+'   cImageGDIP           The main class that provides the image properties, hit testing and raising events, uses GDI+ to paint.
+'   cImageEventHost       Eventhost bridge class to capture/enable withEvents for all the images of type cImageGDIP within the collection.
 '   MenuForm              Not visible at runtime, provides a right click menu to the main form.
 '   modAPIDeclarations    Module containing all the API declarations specific to this program not already declared elsewhere.
 '   modMain               This module, containing useful public routines used by this program
@@ -92,33 +92,29 @@ Attribute VB_Name = "modMain"
 ' Added a collection and an event class 'sink' to allow the handling and raising of events for each image object.
 ' Fully documented.
 ' Fixed bugs in initialise from XML re: missing fields causing errors & missing " px" in metrics.
+' renamed cls and bas filenames to match internal names
+
 
 ' Tasks?
 ' ======
 
-' test with alternative XML file
+' Go and have a look at Olaf's widgets
 
-' test with TB - WIP
-' TBimageList ImageExists
+' Test with alternative XML file
+
+' Create a widget class comprising all the image objects WIP
+
+' test with TB - using a dictionary
+' test with TB - using a TB collection
+
+' tooltips, use Faf's tooltip method for raising tooltips on items not automatically raising them.
+
+' TBimageList ImageExists - added
 ' TBimageList bitmap WIP - do we need an option to return a GDI+ bitmap, I think so
 ' TBimageList RemoveAll - should not matter when compiled by TB
 
-' Create a widget class comprising all the image objects
+' sender object provided during event capture
 
-' later
-' rename the class files to match their exposed names
-
-
-'    bitmap immutable while locked
-'
-'    If you redraw or replace a bitmap:
-'
-'        UnlockBitmap
-'        Set new bitmap
-'        LockBitmap
-
-
-' tooltips, use Faf's tooltip method for raising tooltips on items not automatically raising them.
 
 ' Add a top layer image list for images that do not require responses to click events and allow full click-through.
 
@@ -189,6 +185,13 @@ Attribute VB_Name = "modMain"
 ' mainWndProc           The routine where all the Cairo and GDI+ drawing is done, intercepting messages such as WM_PAINT
 
 ' Other things to note for the future:
+' ====================================
+
+'    bitmap immutable while locked, if you redraw or replace a bitmap:
+'
+'        UnlockBitmap
+'        Set new bitmap
+'        LockBitmap
 
 ' GdipBitmapLockBits can act as a future zero-copy bridge between GDI+ LockBits and a Cairo surface, used in high-speed gaming...
 
@@ -476,9 +479,16 @@ Public Function readImageFromDictionary(ByVal Key As String) As Long
     On Error GoTo readImageFromDictionary_Error
     
     ' get the stored image from the collection if it exists
-    If thisImageList.Exists(Key) <> 0 Then
-        readImageFromDictionary = thisImageList.bitmap(Key) ' return value
-    End If
+
+'    #If TWINBASIC Then
+'        If thisImageList.ImageExists(Key) <> 0 Then
+'            readImageFromDictionary = thisImageList.bitmap(Key) ' return value
+'        End If
+'    #Else
+        If thisImageList.Exists(Key) <> 0 Then
+            readImageFromDictionary = thisImageList.BITMAP(Key) ' return value
+        End If
+'    #End If
     
    Exit Function
 

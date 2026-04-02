@@ -12,7 +12,7 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '---------------------------------------------------------------------------------------
-' Module    : cfImageGDIP
+' Module    : cImageGDIP
 ' Author    : beededea
 ' Date      : 20/11/2025
 ' Purpose   : A class that encapsulates the properties of an image.
@@ -53,6 +53,8 @@ Private mLocked As Boolean
 ' public mouseDown events for an object of this class
 Public Event MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
 Public Event MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Public Event MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+
 
 
 '---------------------------------------------------------------------------------------
@@ -87,7 +89,7 @@ Private Sub Class_Initialize()
 
 Class_Initialize_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Initialize of Class Module cfImageGDIP"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Initialize of Class Module cImageGDIP"
 End Sub
 
 
@@ -102,7 +104,7 @@ Private Sub Class_Terminate()
     On Error GoTo Class_Terminate_Error
       
     ' The GDIP graphics are now deleted
-    Call GdipDeleteGraphics(bitmap)
+    Call GdipDeleteGraphics(BITMAP)
     Call GdipDeleteGraphics(mBitmap)
     
     On Error GoTo 0
@@ -689,10 +691,10 @@ End Property
 ' Purpose   : The bitmap is the data that comprises the PNG image converted using GDI+
 '---------------------------------------------------------------------------------------
 '
-Public Property Get bitmap() As Long
+Public Property Get BITMAP() As Long
    On Error GoTo BitmapGet_Error
 
-   bitmap = mBitmap
+   BITMAP = mBitmap
 
    On Error GoTo 0
    Exit Property
@@ -708,7 +710,7 @@ End Property
 ' Purpose   : The bitmap is the data that comprises the PNG image converted using GDI+
 '---------------------------------------------------------------------------------------
 '
-Public Property Let bitmap(ByVal newValue As Long)
+Public Property Let BITMAP(ByVal newValue As Long)
    On Error GoTo BitmapLet_Error
 
     If mBitmap <> newValue Then mBitmap = newValue Else Exit Property
@@ -962,48 +964,9 @@ Public Function HitTest(ByVal x As Long, ByVal y As Long) As Boolean
 
 HitTest_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure HitTest of Class Module cfImageGDIP"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure HitTest of Class Module cImageGDIP"
 End Function
 
-'---------------------------------------------------------------------------------------
-' Procedure : RaiseMouseDown
-' Author    : beededea
-' Date      : 21/03/2026
-' Purpose   : Event raiser
-'---------------------------------------------------------------------------------------
-'
-Friend Sub RaiseMouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
-    On Error GoTo RaiseMouseDown_Error
-
-    RaiseEvent MouseDown(Button, Shift, x, y)
-
-    On Error GoTo 0
-    Exit Sub
-
-RaiseMouseDown_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure RaiseMouseDown of Class Module cfImageGDIP"
-End Sub
-
-'---------------------------------------------------------------------------------------
-' Procedure : RaiseMouseMove
-' Author    : beededea
-' Date      : 21/03/2026
-' Purpose   : Event raiser
-'---------------------------------------------------------------------------------------
-'
-Friend Sub RaiseMouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
-    On Error GoTo RaiseMouseMove_Error
-
-    RaiseEvent MouseMove(Button, Shift, x, y)
-
-    On Error GoTo 0
-    Exit Sub
-
-RaiseMouseMove_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure RaiseMouseMove of Class Module cfImageGDIP"
-End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : ScreenToLocal
@@ -1023,7 +986,7 @@ Public Sub ScreenToLocal(ByVal x As Long, ByVal y As Long, ByRef lx As Single, B
 
 ScreenToLocal_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure ScreenToLocal of Class Module cfImageGDIP"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure ScreenToLocal of Class Module cImageGDIP"
 End Sub
 
 '---------------------------------------------------------------------------------------
@@ -1062,7 +1025,7 @@ Public Sub LockBitmap()
 
 LockBitmap_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure LockBitmap of Class Module cfImageGDIP"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure LockBitmap of Class Module cImageGDIP"
 
 End Sub
 
@@ -1087,7 +1050,7 @@ Public Sub UnlockBitmap()
 
 UnlockBitmap_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure UnlockBitmap of Class Module cfImageGDIP"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure UnlockBitmap of Class Module cImageGDIP"
 
 End Sub
 
@@ -1119,7 +1082,7 @@ Private Function GetAlphaAt(ByVal x As Long, ByVal y As Long) As Byte
 
 GetAlphaAt_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure GetAlphaAt of Class Module cfImageGDIP"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure GetAlphaAt of Class Module cImageGDIP"
 
 End Function
 

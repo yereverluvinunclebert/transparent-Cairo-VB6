@@ -238,13 +238,13 @@ End Enum
 Public lngGDI As Long
 Private gdipInit As GDIPLUS_STARTINPUT
 
-#If TWINBASIC Then
-    ' Wrapper around TwinBasic's collection
-    Public thisImageList As New cTBImageList
-#Else
+'#If TWINBASIC Then
+'    ' Wrapper around TwinBasic's collection
+'    Public thisImageList As New cTBImageList
+'#Else
     ' new GDI+ image list instance
     Public thisImageList As New cGdipImageList
-#End If
+'#End If
 
 ' counter for each usage of the class
 Public gGdipImageListInstanceCount As Long
@@ -894,5 +894,4 @@ fDirExists_Error:
 End Function
 
 '
-
 

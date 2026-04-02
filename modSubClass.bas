@@ -17,13 +17,15 @@ Public Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" _
 
 Public Const GWL_WNDPROC = -4
 
-Public Const WM_MOUSEMOVE = &H200
-Public Const WM_LBUTTONDOWN = &H201
+Private Const WM_MOUSEMOVE = &H200
+Private Const WM_LBUTTONDOWN = &H201
+Private Const WM_LBUTTONUP = &H202
 
 Public gPrevWndProc As Long
 Public gFormHwnd As Long
 Public gHitTestCollection As Collection
 
+Public gActiveImage As cImageGDIP
 
 '---------------------------------------------------------------------------------------
 ' Procedure : SubclassProc
@@ -42,31 +44,45 @@ Public Function SubclassProc(ByVal hwnd As Long, ByVal Msg As Long, _
     Dim x As Long, y As Long
     Dim lx As Single, ly As Single
     Dim i As Long
-    Dim img As cfImageGDIP
+    Dim img As cImageGDIP
     
     On Error GoTo SubclassProc_Error
 
     x = lParam And &HFFFF&
     y = (lParam \ &H10000) And &HFFFF&
-    
+
     Select Case Msg
-        Case WM_MOUSEMOVE, WM_LBUTTONDOWN
-        
+        Case WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP
+
             ' iterate TOP to BOTTOM through the hit test collection
             For i = gHitTestCollection.Count To 1 Step -1
                 Set img = gHitTestCollection(i)
                 If img.HitTest(x, y) Then
                     img.ScreenToLocal x, y, lx, ly
-                    If Msg = WM_MOUSEMOVE Then
-                        img.RaiseMouseMove 0, 0, lx, ly
-                    ElseIf Msg = WM_LBUTTONDOWN Then
+                    If Msg = WM_LBUTTONDOWN Then
+                        ' make a copy of the image to cater for moving mouse
+                        Set gActiveImage = img   ' track the click on the image
+                        SetCapture hwnd          ' capture and lock, guarantees you will receive ALL mouse messages
+                        
+                        img.ScreenToLocal x, y, lx, ly
                         img.RaiseMouseDown 1, 0, lx, ly
+                        
+                    ElseIf Msg = WM_LBUTTONUP Then
+                        If Not gActiveImage Is Nothing Then
+                            gActiveImage.ScreenToLocal x, y, lx, ly
+                            gActiveImage.RaiseMouseUp 1, 0, lx, ly
+                            Set gActiveImage = Nothing
+                            
+                            ReleaseCapture   ' release the capture, vital
+                        End If
+                    ElseIf Msg = WM_MOUSEMOVE Then
+                        img.RaiseMouseMove 0, 0, lx, ly
                     End If
                     Exit For   ' STOP event consumed
                 End If
             Next
     End Select
-
+    
     SubclassProc = CallWindowProc(gPrevWndProc, hwnd, Msg, wParam, lParam)
 
     On Error GoTo 0
