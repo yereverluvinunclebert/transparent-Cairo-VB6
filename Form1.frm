@@ -34,10 +34,14 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
+Private WithEvents thisWidget As cWidgetForm
+Attribute thisWidget.VB_VarHelpID = -1
 Private WithEvents thisGDIPimage As cImageGDIP
 Attribute thisGDIPimage.VB_VarHelpID = -1
 
 Private mEventHostCollection As Collection
+
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Form_Load
@@ -79,7 +83,9 @@ Public Sub vbFormSetup()
     thisHDC = Form1.hDC
     sWidgetOpacity = "100"
     sWidgetZOrder = "2"
+    widgetFormName = "Transparent Cairo"
     
+    Set thisWidget = New cWidgetForm
     Set thisGDIPimage = New cImageGDIP
         
     ' standard VB6 collections used for hit testing and event capture
@@ -107,6 +113,9 @@ Public Sub vbFormSetup()
     
     ' sets bmpInfo object to create a bitmap of the whole screen size and get a handle to the Device Context
     Call createGDIStructures
+    
+    ' create a widget object
+    Call addThisForm("Transparent Cairo", 0, 0, 900, 750, 100, vbNullString, True)
     
     ' add single images to image list (dictionary)
     Call addSingleImagesToImageList
@@ -233,8 +242,8 @@ Public Sub addSingleImagesToFullScreenDisplay()
     
     On Error GoTo addSingleImagesToFullScreenDisplay_Error
 
-    Call addThisImage("tardis", 750, 250, 200, 200, "tardis", 100, vbNullString, True)
-    Call addThisImage("player", 950, 250, 200, 200, "player", 100, vbNullString, True)
+    Call addThisImage(widgetFormName, "tardis", 750, 250, 200, 200, "tardis", 100, vbNullString, True)
+    Call addThisImage(widgetFormName, "player", 950, 250, 200, 200, "player", 100, vbNullString, True)
 
     On Error GoTo 0
     Exit Sub
@@ -253,7 +262,7 @@ End Sub
 '             then adds hit testing and event handling for each layer
 '---------------------------------------------------------------------------------------
 '
-Private Sub addThisImage(ByVal thisKey As String, ByVal thisX As Long, ByVal thisY As Long, ByVal thisWidth As Long, ByVal thisHeight As Long, ByVal thisName As String, ByVal thisOpacity As Integer, ByVal thisTooltip As String, ByVal thisRefresh As Boolean)
+Private Sub addThisImage(ByVal thisWidgetFormName As String, ByVal thisKey As String, ByVal thisX As Long, ByVal thisY As Long, ByVal thisWidth As Long, ByVal thisHeight As Long, ByVal thisName As String, ByVal thisOpacity As Integer, ByVal thisTooltip As String, ByVal thisRefresh As Boolean)
     
     Dim thisBitmap As Long: thisBitmap = 0
     
@@ -264,7 +273,7 @@ Private Sub addThisImage(ByVal thisKey As String, ByVal thisX As Long, ByVal thi
     
     ' creates an image of type cImageGDIP with associated properties
     With thisGDIPimage
-        .bitmap = thisBitmap
+        .Bitmap = thisBitmap
         .Left = thisX
         .Top = thisY
         .Width = thisWidth
@@ -421,7 +430,7 @@ Public Sub InitialiseImageWidgetsFromXML()
                     thisImageList.AddImage sName, pngFileToLoad
                         
                     ' create an image object and write it to the full screen bitmap
-                    Call addThisImage(sName, hOffset, vOffset, Width, Height, sName, Opacity, vbNullString, True)
+                    Call addThisImage(widgetFormName, sName, hOffset, vOffset, Width, Height, sName, Opacity, vbNullString, True)
 
                 Else
                     MsgBox "Error, this PNG resource file seems to be missing " & pngFileToLoad
@@ -466,7 +475,7 @@ Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName A
     
     ' add the image bitmap to a collection complete with the size, location characteristics to allow hit testing
     
-    img.bitmap = bmp
+    img.Bitmap = bmp
     img.Left = x
     img.Top = y
     img.Width = w
@@ -505,3 +514,40 @@ addImagesToHitAndEventCollections_Error:
 End Sub
 
 
+'---------------------------------------------------------------------------------------
+' Procedure : addThisForm
+' Author    : beededea
+' Date      : 27/03/2026
+' Purpose   : creates an Form of type cWidgetForm with associated properties,
+
+'---------------------------------------------------------------------------------------
+'
+Private Sub addThisForm(ByVal thisName As String, ByVal thisX As Long, ByVal thisY As Long, ByVal thisWidth As Long, ByVal thisHeight As Long, ByVal thisOpacity As Integer, ByVal thisTooltip As String, ByVal thisRefresh As Boolean)
+    
+    On Error GoTo addThisForm_Error
+        
+    ' creates a widget of type cWidgetForm with associated properties
+    With thisWidget
+        .Left = thisX
+        .Top = thisY
+        .Width = thisWidth
+        .Height = thisHeight
+        .Name = thisName
+        .Opacity = thisOpacity
+        .Tooltip = "Test widget"
+        If thisRefresh = True Then .Refresh
+    End With
+
+    On Error GoTo 0
+    Exit Sub
+
+addThisForm_Error:
+
+    With Err
+         If .Number <> 0 Then
+            MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure addThisForm of Form Form1"
+            Resume Next
+          End If
+    End With
+    
+End Sub

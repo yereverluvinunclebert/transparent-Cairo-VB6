@@ -60,6 +60,8 @@ Private Sub bubblingEventImg_MouseDown(Button As Integer, Shift As Integer, x As
             Call stopbutton_mouseDown(Sender)
         Case "helpbutton"
             Call helpbutton_mouseDown(Sender)
+        Case "tardis"
+            Call tardis_mouseDown(Sender)
         Case Else
             'Call otherItem_mouseDown(Sender)
     End Select
@@ -76,6 +78,8 @@ bubblingEventImg_MouseDown_Error:
           End If
     End With
 End Sub
+
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : bubblingEventImg_MouseMove
@@ -186,7 +190,7 @@ End Sub
 Private Sub lockbutton_mouseDown(ByRef Sender As String)
    On Error GoTo lockbutton_mouseDown_Error
    
-    'MsgBox ("MouseDown For " & Sender)
+    MsgBox ("MouseDown For " & Sender)
    
     
 '    If gaugeOverlay.Locked = False Then
@@ -488,3 +492,29 @@ helpbutton_mouseDown_Error:
 
 End Sub
 
+
+
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : tardis_mouseDown
+' Author    : beededea
+' Date      : 03/08/2023
+' Purpose   : toggles the display of the multi-core VB6 form
+'---------------------------------------------------------------------------------------
+'
+Private Sub tardis_mouseDown(ByRef Sender As String)
+    On Error GoTo tardis_mouseDown_Error
+
+    ' MsgBox ("Form will close now - pressed " & Sender)
+
+    Call thisForm_Unload
+    
+   On Error GoTo 0
+   Exit Sub
+
+tardis_mouseDown_Error:
+
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure tardis_mouseDown of Class Module cfGauge"
+
+End Sub

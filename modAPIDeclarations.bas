@@ -220,17 +220,18 @@ Public Type BitmapData
 End Type
 
 Public Declare Function GdipBitmapLockBits Lib "gdiplus" ( _
-    ByVal BITMAP As Long, _
+    ByVal Bitmap As Long, _
     ByRef RECT As RECT, _
     ByVal flags As Long, _
     ByVal format As Long, _
     ByRef lockedBitmapData As BitmapData) As Long
 
 Public Declare Function GdipBitmapUnlockBits Lib "gdiplus" ( _
-    ByVal BITMAP As Long, _
+    ByVal Bitmap As Long, _
     ByRef lockedBitmapData As BitmapData) As Long
 
 Public Const ImageLockModeRead = &H1
 
 Public Declare Function SetCapture Lib "user32" (ByVal hwnd As Long) As Long
 
+Public widgetFormName As String

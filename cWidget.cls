@@ -6,20 +6,17 @@ BEGIN
   DataSourceBehavior  = 0  'vbNone
   MTSTransactionMode  = 0  'NotAnMTSObject
 END
-Attribute VB_Name = "cWidget"
+Attribute VB_Name = "cWidgetForm"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '---------------------------------------------------------------------------------------
-' Module    : cImageGDIP
+' Module    : cWidgetForm
 ' Author    : beededea
 ' Date      : 20/11/2025
-' Purpose   : A class that encapsulates the properties of an image.
+' Purpose   : A class that encapsulates the properties of a 'widgetForm'.
 '
-' Usage     : An image is is written to an cGdipImageListimagelist (dictionary)
-'             The image is extracted from the imageList when required
-'             The resulting GDIP bitmap is passed to this class with other characteristics defined and that image is rendered upon the screen.
 '---------------------------------------------------------------------------------------
 
 Option Explicit
@@ -30,7 +27,7 @@ Private mLeft As Long
 Private mTop As Long
 Private mHeight As Long
 Private mWidth As Long
-Private mIndex As Integer
+
 Private mOpacity As Integer
 Private mName As String
 Private mVisible As Boolean
@@ -39,13 +36,10 @@ Private mEnabled As Boolean
 Private mScaleSize As Single
 Private mRotate As Single
 Private mTooltip As String
-Private mBitmap As Long
+
 Private mRotationPointX As Long
 Private mRotationPointY As Long
 
-Private mBmpData As BitmapData
-Private mScan0 As Long
-Private mStride As Long
 Private mLocked As Boolean
 
 'Private mRefresh As Boolean ' function
@@ -61,12 +55,10 @@ Public Event MouseUp(Button As Integer, Shift As Integer, x As Single, y As Sing
 ' Procedure : Class_Initialize
 ' Author    : beededea
 ' Date      : 13/12/2025
-' Purpose   : Only the main animated Images require this.
+' Purpose   :
 '---------------------------------------------------------------------------------------
 '
 Private Sub Class_Initialize()
-
-    'mainImagexo = 0: mainImageyo = 0
 
     On Error GoTo Class_Initialize_Error
 
@@ -74,7 +66,6 @@ Private Sub Class_Initialize()
      mTop = 0
      mHeight = 0
      mWidth = 0
-     mIndex = 0
      mOpacity = 100
      mName = vbNullString
      mVisible = True
@@ -82,14 +73,13 @@ Private Sub Class_Initialize()
      mScaleSize = 1
      mRotate = 0
      mTooltip = vbNullString
-     mBitmap = 0
 
     On Error GoTo 0
     Exit Sub
 
 Class_Initialize_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Initialize of Class Module cImageGDIP"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Initialize of Class Module cWidgetForm"
 End Sub
 
 
@@ -103,67 +93,22 @@ End Sub
 Private Sub Class_Terminate()
     On Error GoTo Class_Terminate_Error
       
-    ' The GDIP graphics are now deleted
-    Call GdipDeleteGraphics(BITMAP)
-    Call GdipDeleteGraphics(mBitmap)
     
     On Error GoTo 0
     Exit Sub
 
 Class_Terminate_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Terminate of Class Module cTBImageList"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Terminate of Class Module cWidgetForm"
 End Sub
-'---------------------------------------------------------------------------------------
-' Property  : Index
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   : property to store an index that may be useful (not a control array)
-'---------------------------------------------------------------------------------------
-'
-Public Property Get Index() As Integer
-   On Error GoTo IndexGet_Error
 
-   Index = mIndex
 
-   On Error GoTo 0
-   Exit Property
-
-IndexGet_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Index of Class Module cwImage"
-End Property
-'---------------------------------------------------------------------------------------
-' Property  : Index
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-Public Property Let Index(ByVal newValue As Integer)
-   On Error GoTo IndexLet_Error
-
-    If mIndex <> newValue Then mIndex = newValue Else Exit Property
-    
-    If mIndex = True Then
-    
-    Else
-    
-    End If
-
-   On Error GoTo 0
-   Exit Property
-
-IndexLet_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Index of Class Module cwImage"
-End Property
 '
 '---------------------------------------------------------------------------------------
 ' Property  : Left
 ' Author    : beededea
 ' Date      : 20/11/2025
-' Purpose   : The image's X/Hoffset position
+' Purpose   : The widget's X/Hoffset position
 '---------------------------------------------------------------------------------------
 '
 Public Property Get Left() As Long
@@ -176,7 +121,7 @@ Public Property Get Left() As Long
 
 LeftGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Left
@@ -204,7 +149,7 @@ Public Property Let Left(ByVal newValue As Long)
 
 LeftLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module cWidgetForm"
 End Property
 
 
@@ -213,7 +158,7 @@ End Property
 ' Property  : Top
 ' Author    : beededea
 ' Date      : 20/11/2025
-' Purpose   : The image's Y/Voffset position
+' Purpose   : The widget's Y/Voffset position
 '---------------------------------------------------------------------------------------
 '
 Public Property Get Top() As Long
@@ -226,7 +171,7 @@ Public Property Get Top() As Long
 
 TopGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Top
@@ -253,7 +198,7 @@ Public Property Let Top(ByVal newValue As Long)
 
 TopLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module cWidgetForm"
 End Property
 
 
@@ -274,7 +219,7 @@ Public Property Get Enabled() As Boolean
 
 EnabledGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Enabled
@@ -301,7 +246,7 @@ Public Property Let Enabled(ByVal newValue As Boolean)
 
 EnabledLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module cWidgetForm"
 End Property
 
 '
@@ -322,7 +267,7 @@ Public Property Get Height() As Long
 
 HeightGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Height
@@ -347,7 +292,7 @@ Public Property Let Height(ByVal newValue As Long)
 
 HeightLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module cWidgetForm"
 End Property
 
 
@@ -368,7 +313,7 @@ Public Property Get Width() As Long
 
 WidthGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module cWidgetForm"
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -394,7 +339,7 @@ Public Property Let Width(ByVal newValue As Long)
 
 WidthLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module cWidgetForm"
 End Property
 
 
@@ -417,7 +362,7 @@ Public Property Get Opacity() As Long
 
 OpacityGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module cWidgetForm"
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -445,7 +390,7 @@ Public Property Let Opacity(ByVal newValue As Long)
 
 OpacityLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module cWidgetForm"
 End Property
 
 
@@ -468,7 +413,7 @@ Public Property Get Name() As String
 
 NameGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Name
@@ -489,7 +434,7 @@ Public Property Let Name(ByVal newValue As String)
 
 NameLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module cWidgetForm"
 End Property
 
 
@@ -510,7 +455,7 @@ Public Function Refresh() As String
 
 RefreshGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Function Refresh of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Function Refresh of Class Module cWidgetForm"
 End Function
 
 
@@ -532,7 +477,7 @@ Public Property Get Visible() As Boolean
 
 VisibleGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Visible
@@ -553,7 +498,7 @@ Public Property Let Visible(ByVal newValue As Boolean)
 
 VisibleLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module cWidgetForm"
 End Property
 
 
@@ -577,7 +522,7 @@ Public Property Get ScaleSize() As Single
 
 ScaleSizeGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : ScaleSize
@@ -598,7 +543,7 @@ Public Property Let ScaleSize(ByVal newValue As Single)
 
 ScaleSizeLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module cWidgetForm"
 End Property
 
 
@@ -619,7 +564,7 @@ Public Property Get Rotate() As Single
 
 RotateGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Rotate
@@ -640,7 +585,7 @@ Public Property Let Rotate(ByVal newValue As Single)
 
 RotateLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module cWidgetForm"
 End Property
 
 
@@ -661,7 +606,7 @@ Public Property Get Tooltip() As String
 
 TooltipGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Tooltip
@@ -680,126 +625,11 @@ Public Property Let Tooltip(ByVal newValue As String)
 
 TooltipLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module cWidgetForm"
 End Property
 
 
-'---------------------------------------------------------------------------------------
-' Property  : Bitmap
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   : The bitmap is the data that comprises the PNG image converted using GDI+
-'---------------------------------------------------------------------------------------
-'
-Public Property Get BITMAP() As Long
-   On Error GoTo BitmapGet_Error
 
-   BITMAP = mBitmap
-
-   On Error GoTo 0
-   Exit Property
-
-BitmapGet_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Bitmap of Class Module cwImage"
-End Property
-'---------------------------------------------------------------------------------------
-' Property  : Bitmap
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   : The bitmap is the data that comprises the PNG image converted using GDI+
-'---------------------------------------------------------------------------------------
-'
-Public Property Let BITMAP(ByVal newValue As Long)
-   On Error GoTo BitmapLet_Error
-
-    If mBitmap <> newValue Then mBitmap = newValue Else Exit Property
-    
-   On Error GoTo 0
-   Exit Property
-
-BitmapLet_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Bitmap of Class Module cwImage"
-End Property
-
-'---------------------------------------------------------------------------------------
-' Property  : Scan0
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   : Scan0 values used to determine Alpha transparency levels
-'---------------------------------------------------------------------------------------
-'
-Public Property Get Scan0() As Long
-   On Error GoTo Scan0Get_Error
-
-   Scan0 = mScan0
-
-   On Error GoTo 0
-   Exit Property
-
-Scan0Get_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Scan0 of Class Module cwImage"
-End Property
-'---------------------------------------------------------------------------------------
-' Property  : Scan0
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   : Scan0 values used to determine Alpha transparency levels
-'---------------------------------------------------------------------------------------
-'
-Public Property Let Scan0(ByVal newValue As Long)
-   On Error GoTo Scan0Let_Error
-
-    If mScan0 <> newValue Then mScan0 = newValue Else Exit Property
-
-   On Error GoTo 0
-   Exit Property
-
-Scan0Let_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Scan0 of Class Module cwImage"
-End Property
-
-'---------------------------------------------------------------------------------------
-' Property  : Stride
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   : Stride values used to determine Alpha transparency levels
-'---------------------------------------------------------------------------------------
-'
-Public Property Get Stride() As Long
-   On Error GoTo StrideGet_Error
-
-   Stride = mStride
-
-   On Error GoTo 0
-   Exit Property
-
-StrideGet_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Stride of Class Module cwImage"
-End Property
-'---------------------------------------------------------------------------------------
-' Property  : Stride
-' Author    : beededea
-' Date      : 20/11/2025
-' Purpose   : Stride values used to determine Alpha transparency levels
-'---------------------------------------------------------------------------------------
-'
-Public Property Let Stride(ByVal newValue As Long)
-   On Error GoTo StrideLet_Error
-
-    If mStride <> newValue Then mStride = newValue Else Exit Property
-
-   On Error GoTo 0
-   Exit Property
-
-StrideLet_Error:
-
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Stride of Class Module cwImage"
-End Property
 
 
 '---------------------------------------------------------------------------------------
@@ -819,7 +649,7 @@ Public Property Get Locked() As Long
 
 LockedGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Locked
@@ -838,7 +668,7 @@ Public Property Let Locked(ByVal newValue As Long)
 
 LockedLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cWidgetForm"
 End Property
 
 
@@ -860,7 +690,7 @@ Public Property Get RotationPointX() As Long
 
 RotationPointXGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : RotationPointX
@@ -879,7 +709,7 @@ Public Property Let RotationPointX(ByVal newValue As Long)
 
 RotationPointXLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cWidgetForm"
 End Property
 
 
@@ -900,7 +730,7 @@ Public Property Get RotationPointY() As Long
 
 RotationPointYGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : RotationPointY
@@ -919,186 +749,26 @@ Public Property Let RotationPointY(ByVal newValue As Long)
 
 RotationPointYLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cwImage"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cWidgetForm"
 End Property
 
 
 
 
-'---------------------------------------------------------------------------------------
-' Procedure : HitTest
-' Author    : beededea
-' Date      : 19/03/2026
-' Purpose   : Called from the subclassed form on an intercepted MouseDown
-'---------------------------------------------------------------------------------------
-'
-Public Function HitTest(ByVal x As Long, ByVal y As Long) As Boolean
-    
-    Dim lx As Long: lx = 0
-    Dim ly As Long: ly = 0
-    
-    On Error GoTo HitTest_Error
-
-    If Not mVisible Then Exit Function
-    If Not mEnabled Then Exit Function
-    
-    ' Compare against the image bounds
-     
-    If x < mLeft Or x > mLeft + mWidth Then Exit Function
-    If y < mTop Or y > mTop + mHeight Then Exit Function
-    
-    lx = x - mLeft
-    ly = y - mTop
-    
-'    ' alpha test
-    If mLocked Then
-        If GetAlphaAt(lx, ly) > 10 Then ' threshold tweakable
-            HitTest = True
-        End If
-    Else
-        HitTest = True ' fallback
-    End If
-
-    On Error GoTo 0
-    Exit Function
-
-HitTest_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure HitTest of Class Module cImageGDIP"
-End Function
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : ScreenToLocal
-' Author    : beededea
-' Date      : 19/03/2026
-' Purpose   : convert screen from VB6 form to image coordinates
-'---------------------------------------------------------------------------------------
-'
-Public Sub ScreenToLocal(ByVal x As Long, ByVal y As Long, ByRef lx As Single, ByRef ly As Single)
-    On Error GoTo ScreenToLocal_Error
-
-    lx = x - mLeft
-    ly = y - mTop
-
-    On Error GoTo 0
-    Exit Sub
-
-ScreenToLocal_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure ScreenToLocal of Class Module cImageGDIP"
-End Sub
-
-'---------------------------------------------------------------------------------------
-' Procedure : LockBitmap
-' Author    : beededea
-' Date      : 25/03/2026
-' Purpose   : lock the bitmap to allow alpha hit-testing
-'---------------------------------------------------------------------------------------
-'
-Public Sub LockBitmap()
-
-    On Error GoTo LockBitmap_Error
-
-    If mBitmap = 0 Then Exit Sub
-    If mLocked Then Exit Sub
-    
-    Dim rct As RECT
-    rct.Left = 0
-    rct.Top = 0
-    rct.Right = mWidth
-    rct.Bottom = mHeight
-    
-    ' use GDIP to lock the bitmap that comprises the image, obtain Scan0 and Stride values used to determine Alpha transparency levels
-    If GdipBitmapLockBits(mBitmap, rct, ImageLockModeRead, _
-                          PixelFormat32bppARGB, mBmpData) = 0 Then
-                          
-        ' a pointer to raw pixel data
-        mScan0 = mBmpData.Scan0
-        mStride = mBmpData.Stride
-        mLocked = True
-        
-    End If
-
-    On Error GoTo 0
-    Exit Sub
-
-LockBitmap_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure LockBitmap of Class Module cImageGDIP"
-
-End Sub
-
-'---------------------------------------------------------------------------------------
-' Procedure : UnlockBitmap
-' Author    : beededea
-' Date      : 25/03/2026
-' Purpose   :
-'---------------------------------------------------------------------------------------
-'
-Public Sub UnlockBitmap()
-
-    On Error GoTo UnlockBitmap_Error
-
-    If mLocked Then
-        GdipBitmapUnlockBits mBitmap, mBmpData
-        mLocked = False
-    End If
-
-    On Error GoTo 0
-    Exit Sub
-
-UnlockBitmap_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure UnlockBitmap of Class Module cImageGDIP"
-
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : GetAlphaAt
-' Author    : beededea
-' Date      : 26/03/2026
-' Purpose   : obtain the alpha transparency of an image at the point selected/clicked
-'---------------------------------------------------------------------------------------
-'
-Private Function GetAlphaAt(ByVal x As Long, ByVal y As Long) As Byte
-
-    Dim ptr As Long
-    
-    On Error GoTo GetAlphaAt_Error
-
-    If x < 0 Or y < 0 Then Exit Function
-    If x >= mWidth Or y >= mHeight Then Exit Function
-    
-    ' obtain a value for the pointer to determine the transparency at that location
-    ptr = mScan0 + (y * mStride) + (x * 4)
-    
-    ' return the value of the transparency as a byte
-    CopyMemory GetAlphaAt, ByVal (ptr + 3), 1
-
-    On Error GoTo 0
-    Exit Function
-
-GetAlphaAt_Error:
-
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure GetAlphaAt of Class Module cImageGDIP"
-
-End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : W_Paint
 ' Author    : beededea
 ' Date      : 20/11/2025
-' Purpose   : The paint event for the image using GDI+
+' Purpose   : The paint event for the widget using GDI+
 '---------------------------------------------------------------------------------------
 '
 Private Sub Paint()
    
     On Error GoTo W_Paint_Error
         
-    'draws the selected image bitmap onto the GDIP full screen
-    Call GdipDrawImageRectI(gdipFullScreenBitmap, mBitmap, mLeft, mTop, mWidth, mHeight)
+    'draws the selected widget bitmap onto the GDIP full screen
+    'Call GdipDrawImageRectI(gdipFullScreenBitmap, mBitmap, mLeft, mTop, mWidth, mHeight)
     
    On Error GoTo 0
    Exit Sub

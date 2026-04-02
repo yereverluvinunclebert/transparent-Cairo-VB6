@@ -93,6 +93,7 @@ Attribute VB_Name = "modMain"
 ' Fully documented.
 ' Fixed bugs in initialise from XML re: missing fields causing errors & missing " px" in metrics.
 ' renamed cls and bas filenames to match internal names
+' mouseUp capture and release
 
 
 ' Tasks?
@@ -486,7 +487,7 @@ Public Function readImageFromDictionary(ByVal Key As String) As Long
 '        End If
 '    #Else
         If thisImageList.Exists(Key) <> 0 Then
-            readImageFromDictionary = thisImageList.BITMAP(Key) ' return value
+            readImageFromDictionary = thisImageList.Bitmap(Key) ' return value
         End If
 '    #End If
     
