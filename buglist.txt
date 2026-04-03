@@ -1,15 +1,143 @@
-' TwinBasic for reading from scripting dictionary and feeding to Cairo using callback function.
 
-' How to create a scaled image using Cairo
 
-' How to write Cairo images to a transparent form avoiding artifacts
+' Cairo Problems:
+' ===============
+'
+' When you use Cairo with an HDC target (via cairo_win32_surface_create(hDC)), the resulting surface is not alpha-aware.
+' GDI does not support per-pixel alpha — only color values. So when you draw an image with semi-transparent pixels, Cairo
+' composites them as if against a black background before blitting them onto your window — causing shadows to appear dark and non-transparent.
+' TwinBasic for reading from scripting dictionary and feeding to Cairo using callback function, however, VB6 performs callbacks without safety, TwinBASIC allows AddressOf callbacks safely; VB6 cannot
 
-' What have I learnt?
+' Potential solutions:
+' =======================
 
-' RC collections are very useful and easy to use to load a PNG into Cairo.
+' A.
+' Cairo does all compositing in a true ARGB32 surface.
+' You transfer that buffer to a GDI DIB section.
+' AlphaBlend() performs proper per-pixel alpha blending with the window’s background.
 
-' RC is very good at placing transparent PNG images on a transparent form.
+' B.
+' Do the whole thing using GDI+ as a demonstration of overall capability - (tested and working) -
+' - when working later, I will slot in the Cairo code
 
-' Standard collections 
+' Status for B:
+' =============
 
-TwinBASIC allows AddressOf callbacks safely; VB6 cannot
+' We have a version that now places a Cairo image to the DC of a solid white background of user-created form using createWindowEx - (tested and working)
+' We have added the necessary code to place an image on a solid VB6 form using GDI+ (tested and working)
+' We have added the necessary code to place a stable image on a fully transparent form using GDI+ (tested and working)
+' We have added the capability to store and extract an std picture image from a dictionary (CB's dict) and with my RC collection wrapper (tested and working)
+' We have added bitmap capability to my RC collection wrapper (tested and working)
+' Added a menu to allow easy program closing (tested and working)
+' Added an image class to take an image bitmap and other properties to draw a single image on the screen (tested and working)
+' Added routine to read image properties from parsed XML (tested and working).
+' Added a load of multiple image objects to the screen using XML (tested and working).
+' Added event handling for a single image object.
+' Added a collection and class for hit testing to identify each image object's bounds and transparent areas.
+' Added a collection and an event class 'sink' to allow the handling and raising of events for each image object.
+' Fully documented.
+' Fixed bugs in initialise from XML re: missing fields causing errors & missing " px" in metrics.
+' Renamed cls and bas filenames to match internal names
+' MouseUp capture and release implemented
+
+' Tasks?
+' ======
+
+' Create a parent 'form' class comprising all the image objects WIP
+
+' Go and have a look at Olaf's widgets, see what we can glean.
+
+' Test with alternative XML file, copy the CPU XML, merge the steampunk clock/cal entries to the end, one by one and see how it goes.
+
+' test the stdPicture to HBitmap conversion routine for the TB image list
+
+' test with TB - using a dictionary
+' test with TB - using a TB collection
+
+' tooltips, use Faf's tooltip method for raising tooltips on items not automatically raising them.
+
+' TBimageList ImageExists - added
+' TBimageList bitmap WIP - do we need an option to return a GDI+ bitmap, I think so
+' TBimageList RemoveAll - should not matter when compiled by TB
+
+' sender object provided during event capture
+
+
+' Add a top layer image list for images that do not require responses to click events and allow full click-through.
+
+' Why do we need to utilise a user-created window/form?
+'    For testing if for some reason we can't get the Cairo version working.
+'    A custom form is lightweight and program size can be reduced, the extra complexity and utility of a VB6 program.
+'    Don't do it until the whole lot is tested and working and after we have moved the code not being form-based.
+
+
+' Status for Potential solution A - Cairo:
+' ========================================
+   
+' All the above work and structure in B. is applicable to Cairo.
+
+' The Cairo function needs to be hacked to move the file load to the startup
+
+' The recommended call to cairo_image_surface_create does not work using other cairo DLLs, placing nothing on any hDC
+' When I use vbCairo cairo_win32_surface_create (thisHDC) then a transparent image is placed directly on the device context as required
+' meaning that all the rest of the code to place an image on a layered window is not even utilised.
+
+' tried cairo_image_surface_create with any other cairo.dll whilst using vbCairo for all the rest
+' tried cairo_image_surface_create with RC cairo.dll whilst using vbCairo for all the rest
+
+' What I believe is happening is that the write to the hDc is working but the image will not persist on the hDC(0) as the explorer process regularly refreshes it.
+' When writing to the VB6 form, the image persists but the vbCyan used as a key for transparency still is present as an outline artefact.
+
+' What I think I have to do :
+
+' try replacing ALL the Cairo calls using RC6 versions to see if the logic as suggested by chatGPT is reasonable
+' try an alternative AI model to test the logic
+
+' In fact the cairo_win32_surface_create(thisHDC) function is a tool that I can use to test the writing of an image to a hDC regardless of the rest of the logic.
+' It might be the method I use with own-created window.
+
+' investigate operator_clear
+
+' so far I stalled on reading the PNG data from a byte array from a dictionary using VB6 as the cairo_image_surface_create_from_png_stream function requires population via a callback
+' it CAN be done using TB callbacks but is not essential to have this within the VB6 program, it is just a proof of concept. To continue, this will eventually be a single image widget demo.
+
+' to read a byte array from a scripting collection and feed it to a Cairo surface is more involved than it looks
+' as cairo_image_surface_create_from_png_stream requires a callback from the function that is a helper function that handles the data for Cairo
+' RichClient does this using VB6 which I cannot replicate so using TB to do the same
+    
+'#If twinbasic Then
+'    Dim surf As LongPtr
+'    surf = CairoSurfaceFromPngBytes(dict("Tardis"))
+'#End If
+
+    ' The code is still here as trial for doing the same in TwinBasic
+    
+'#If twinbasic Then
+'    ' dictionary for the PNG images
+'    Set Surfaces = CreateObject("Scripting.Dictionary")
+'    Surfaces.CompareMode = 1 ' for case-insenitive Key-Comparisons
+'
+'    ' Load PNG bytes into memory
+'    PNGData = LoadFileToBytes(App.path & "\tardis.png")
+'
+'    'We need to learn how to create a scaled image using Cairo
+'    ' HERE
+'
+'    ' Store PNG bytes in the dictionary
+'    Surfaces.Add "Tardis", PNGData
+'#End If
+
+' initiateAPIWindow     The process that does the majority of the Window initialisation determining screen details, initiating the window.
+' createAPIWindow       The main process that does the majority of the Window initialisation and other GDI+ configuration
+' mainWndProc           The routine where all the Cairo and GDI+ drawing is done, intercepting messages such as WM_PAINT
+
+' Other things to note for the future:
+' ====================================
+
+'    bitmap immutable while locked, if you redraw or replace a bitmap:
+'
+'        UnlockBitmap
+'        Set new bitmap
+'        LockBitmap
+
+' GdipBitmapLockBits can act as a future zero-copy bridge between GDI+ LockBits and a Cairo surface, used in high-speed gaming...

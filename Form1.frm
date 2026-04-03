@@ -32,6 +32,58 @@ Attribute VB_Exposed = False
 ' Purpose   :
 '---------------------------------------------------------------------------------------
 
+' form1.form_load         The main program entry point
+
+' Main program classes & modules:
+'   Form1                 The main VB6 form that provides the main program entry point. Invisible and used solely as a code holder for some routines.
+'   cImageGDIP            The main class that provides the image properties, hit testing and raising events, uses GDI+ to paint.
+'   cImageEventHost       Eventhost bridge class to capture/enable withEvents for all the images of type cImageGDIP within the collection.
+'   MenuForm              Not visible at runtime, provides a right click menu to the main form.
+'   modAPIDeclarations    Module containing all the API declarations specific to this program not already declared elsewhere.
+'   modMain               This module, containing useful public routines used by this program
+'   modSubClass           This module sub classes Form1 to intercept mouse-move and mouse-down messages, performs hit-tests and raises events.
+'   modWindowAPI          Module that may provide a user-created window rather than a VB6 form (currently unused).
+
+' Supporting classes & modules:
+'   cGdipImageList        Wrapper class giving a 'Richclient' imageList interface to a collection whilst using GDI+ to load, resize and read images from it.
+'   cTBImageList          As above but using a native TwinBasic collection whilst still using GDI+ to resize images where needed.
+'   Dictionary            Christian Buse's Scripting.Dictionary (collection) replacement.
+'   mGDIPImageList        Module to support cGdipImageList & cTBImageList, subs, functions and API declarations.
+'   cImageEventHost       An event bridge helper class between the collection of images and the cImageGDIP image types to sink events.
+
+
+' The critical parts of this program are:
+
+' addSingleImagesToImageList - that loads the PNGs into a dictionary collection (imageList).
+' addSingleImagesToFullScreenDisplay - that puts single images on the pre-prepared screen using the addThisImage routine.
+' InitialiseImageSurfacesFromXML - that puts mutiple images on screen from an XML definition, using the addThisImage routine.
+' SubclassProc - the routine from which all hit tests and event trapping is initiated.
+
+' Description:
+
+' Program uses GDI+ to read transparent PNGs from a folder into a dictionary. The details of each image are stored in an XML file,
+' which is read line by line and used to identify and place each transparent image layer on screen in the correct location and order.
+' The dictionary is Christian Buse's - VBA Dictionary. The data for each PNG is loaded as a ADODB.Stream object and GDI+ is used to
+' resize and place an image into a dictionary and from that, onto the screen. The main VB6 form is invisible and appears unused, but
+' it exists as a receptacle to allow GDI+ to paint images directly to the device context associated with the form, ie. the screen.
+' The form is sub-classed, ie. messages to and from the window are intercepted to allow manual handling of mouse events, hit-testing
+' and raising of events, replicating what would occur if we were using VB6 controls. Hit-testing is performed using a duplicate collection
+' loaded with a duplicate collection and the bounds and transparencies on the image are tested to determine which image layer has been
+' 'clicked'. Yet another duplicate collection is loaded and tested to act as an event 'sink' bridge to provide event handling for each
+' layer.
+'
+' For a multi-platform graphics alternative, Cairo will eventually be be an option that can be selected to read and place the images
+' on screen but GDI+ is being used in the interim as it is easier to implement, allowing program construction and to prove the
+' utility of the program until the Cairo code is complete and working. When Cairo is implemented GDI+ will probably still be used to
+' resize and load the images into the various collections.
+
+' Credits:
+
+' Olaf Schmidt -
+' Christian Buse - VBA Dictionary
+' Andrew Heinlein  - creating a custom window
+' Joaquim - Color Matrix
+
 Option Explicit
 
 Private WithEvents thisWidget As cWidgetForm
