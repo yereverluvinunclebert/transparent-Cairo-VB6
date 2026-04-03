@@ -23,6 +23,7 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
+'give events to the incoming image nestling in the event collection
 Public WithEvents bubblingEventImg As cImageGDIP
 Attribute bubblingEventImg.VB_VarHelpID = -1
 Public Index As Long   ' optional (for identification)

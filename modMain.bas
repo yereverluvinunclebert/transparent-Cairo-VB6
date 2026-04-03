@@ -28,7 +28,7 @@ Attribute VB_Name = "modMain"
 
 ' addSingleImagesToImageList - that loads the PNGs into a dictionary collection (imageList).
 ' addSingleImagesToFullScreenDisplay - that puts single images on the pre-prepared screen using the addThisImage routine.
-' InitialiseImageWidgetsFromXML - that puts mutiple images on screen from an XML definition, using the addThisImage routine.
+' InitialiseImageSurfacesFromXML - that puts mutiple images on screen from an XML definition, using the addThisImage routine.
 ' SubclassProc - the routine from which all hit tests and event trapping is initiated.
 
 ' Description:
@@ -92,18 +92,19 @@ Attribute VB_Name = "modMain"
 ' Added a collection and an event class 'sink' to allow the handling and raising of events for each image object.
 ' Fully documented.
 ' Fixed bugs in initialise from XML re: missing fields causing errors & missing " px" in metrics.
-' renamed cls and bas filenames to match internal names
-' mouseUp capture and release
-
+' Renamed cls and bas filenames to match internal names
+' MouseUp capture and release implemented
 
 ' Tasks?
 ' ======
 
-' Go and have a look at Olaf's widgets
-
-' Test with alternative XML file
-
 ' Create a widget class comprising all the image objects WIP
+
+' Go and have a look at Olaf's widgets, see what we can glean.
+
+' Test with alternative XML file, copy the CPU XML, merge the steampunk clock/cal entries to the end, one by one and see how it goes.
+
+' test the stdPicture to HBitmap conversion routine for the TB image list
 
 ' test with TB - using a dictionary
 ' test with TB - using a TB collection
@@ -487,7 +488,7 @@ Public Function readImageFromDictionary(ByVal Key As String) As Long
 '        End If
 '    #Else
         If thisImageList.Exists(Key) <> 0 Then
-            readImageFromDictionary = thisImageList.Bitmap(Key) ' return value
+            readImageFromDictionary = thisImageList.bitmap(Key) ' return value
         End If
 '    #End If
     

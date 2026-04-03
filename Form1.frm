@@ -127,7 +127,7 @@ Public Sub vbFormSetup()
     Call addSingleImagesToFullScreenDisplay
     
     'load the XML image data (previously extracted directly from the PSD)
-    Call InitialiseImageWidgetsFromXML
+    Call InitialiseImageSurfacesFromXML
 
     ' Calls UpdateLayeredWindow with created GDI bitmap
     Call updateScreenUsingGDIPBitmap
@@ -273,7 +273,7 @@ Private Sub addThisImage(ByVal thisWidgetFormName As String, ByVal thisKey As St
     
     ' creates an image of type cImageGDIP with associated properties
     With thisGDIPimage
-        .Bitmap = thisBitmap
+        .bitmap = thisBitmap
         .Left = thisX
         .Top = thisY
         .Width = thisWidth
@@ -304,7 +304,7 @@ End Sub
 
 
 ' ----------------------------------------------------------------
-' Procedure Name: InitialiseImageWidgetsFromXML
+' Procedure : InitialiseImageSurfacesFromXML
 ' Purpose   :  Creates a GDIP surface object from each and every PSD layer in the PSD file.
 '              For all the interactive UI elements it creates surface objects with corresponding keynames,
 '              locations and sizes as per the original PSD for each layer. The surfaces are populated from PNGs whose metric
@@ -320,7 +320,7 @@ End Sub
 ' Author: beededea
 ' Date: 28/08/2025
 ' ----------------------------------------------------------------
-Public Sub InitialiseImageWidgetsFromXML()
+Public Sub InitialiseImageSurfacesFromXML()
 
     'Dim answer As VbMsgBoxResult
     Dim answerMsg  As String: answerMsg = vbNullString
@@ -354,7 +354,7 @@ Public Sub InitialiseImageWidgetsFromXML()
 '    Dim ImageNode As MSXML2.IXMLDOMNode
 '    Dim ImageNodes As MSXML2.IXMLDOMNodeList
 
-    On Error GoTo InitialiseImageWidgetsFromXML_Error
+    On Error GoTo InitialiseImageSurfacesFromXML_Error
     
     someOpacity = Val(sOpacity) / 100
     xmlFileToLoad = App.Path & "\RES\CPUimagesXML.xml"
@@ -379,7 +379,7 @@ Public Sub InitialiseImageWidgetsFromXML()
     ' no results found, go on as normal using the sampling interval
     If num_results = 0 Then
         answerMsg = "1. There is a problem with the XML data file that describes the image, seems to contain no valid data"
-        'msgBoxA answerMsg, vbOKOnly + vbExclamation, "XML Warning", True, "InitialiseImageWidgetsFromXMLPollingWarning"
+        'msgBoxA answerMsg, vbOKOnly + vbExclamation, "XML Warning", True, "InitialiseImageSurfacesFromXMLPollingWarning"
         MsgBox answerMsg
         Exit Sub ' Return
     End If
@@ -418,7 +418,7 @@ Public Sub InitialiseImageWidgetsFromXML()
             vOffset = CLng(node.selectSingleNode("@vOffset").Text)
             Opacity = CInt(node.selectSingleNode("@opacity").Text) / 2.55
             
-            On Error GoTo InitialiseImageWidgetsFromXML_Error
+            On Error GoTo InitialiseImageSurfacesFromXML_Error
             
             If Opacity > 0 Then ' only handles layers that have an opacity greater than 0 - need to note this for the future, this will cause a problem!
             
@@ -447,9 +447,9 @@ Public Sub InitialiseImageWidgetsFromXML()
     On Error GoTo 0
     Exit Sub
 
-InitialiseImageWidgetsFromXML_Error:
+InitialiseImageSurfacesFromXML_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure InitialiseImageWidgetsFromXML, line " & Erl & "."
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure InitialiseImageSurfacesFromXML, line " & Erl & "."
 
 End Sub
 
@@ -475,7 +475,7 @@ Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName A
     
     ' add the image bitmap to a collection complete with the size, location characteristics to allow hit testing
     
-    img.Bitmap = bmp
+    img.bitmap = bmp
     img.Left = x
     img.Top = y
     img.Width = w
@@ -493,7 +493,7 @@ Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName A
     ' create event host of class cImageEventHost
     Set eventHost = New cImageEventHost
     
-    ' use eventhost to capture/enable withEvents for the image bitmap, ultimately of type cImageGDIP (see cImageEventHost)
+    ' use an eventhost bridge to give 'withEvents' to the incoming image bitmap, enabling capture of events for each image bitmap in the event collection, ultimately of type cImageGDIP (see cImageEventHost)
     Set eventHost.bubblingEventImg = img
     
     ' pass the index to the class to allow layer identification by ID number.
@@ -501,7 +501,7 @@ Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName A
     
     eventHost.Name = thisName
     
-    ' pop each cImageGDIP image wrapped in an event host, now withEvents and event target code into the collection,
+    ' pop each cImageGDIP image wrapped in an event host, now withEvents and event target code into the local event collection,
     mEventHostCollection.Add eventHost
 
     On Error GoTo 0
