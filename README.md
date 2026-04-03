@@ -32,7 +32,7 @@ The CAIRO.DLL used is still a 32bit DLL and so converting from RichClient to thi
 A working test program - Puts multiple images on screen using GDI+ with a right click menu on an invisible VB6 form using an image class that encapsulates the properties of each image. 
 Each layer image is now identified via hit-testing and a click through any transparent area is passed to the layer below. Event raising for each layer is enabled and events handled.
 
-Currently ironing some bugs in the VB6 version, then will be creating a widget class that will provide a 'home' for the images.
+Currently ironing some bugs in the VB6 version, then will be creating a widgetForm class that will provide a 'home' or parent for the images.
 
 TwinBasic version not working as it is not yet tested after recent changes.
 
