@@ -22,7 +22,7 @@ Private Declare Function CreateDIBSection Lib "gdi32" _
 Private Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hDC As Long) As Long
 Private Declare Function DeleteDC Lib "gdi32" (ByVal hDC As Long) As Long
 Private Declare Function SelectObject Lib "gdi32" (ByVal hDC As Long, ByVal hObj As Long) As Long
-'Private Declare Function DeleteObject Lib "gdi32" (ByVal hObj As Long) As Long
+
 Private Declare Function OleCreatePictureIndirect Lib "oleaut32" _
     (ByRef PicDesc As PICTDESC, _
      ByRef RefIID As GUID, _
@@ -92,13 +92,6 @@ Private Type BITMAPINFOHEADER
     biClrUsed As Long
     biClrImportant As Long
 End Type
-
-'Private Type BLENDFUNCTION
-'    BlendOp As Byte
-'    BlendFlags As Byte
-'    SourceConstantAlpha As Byte
-'    AlphaFormat As Byte
-'End Type
 
 Private Type GDIPLUS_STARTINPUT
     GdiplusVersion As Long

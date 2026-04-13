@@ -1,7 +1,7 @@
-modMain = 16, 15, 1374, 909, Z
+modMain = 16, 15, 1374, 909, 
 cGdipImageList = 78, 78, 1436, 972, 
 cTBImageList = 156, 156, 1514, 1050, 
-Dictionary = 156, 156, 1346, 1050, 
+Dictionary = 156, 156, 1346, 1050, Z
 Form1 = 234, 234, 1686, 1128, , 182, 182, 1634, 1076, C
 modAPIDeclarations = 260, 260, 1712, 1154, 
 menuForm = 468, 468, 1748, 1380, , 442, 442, 1722, 1354, C

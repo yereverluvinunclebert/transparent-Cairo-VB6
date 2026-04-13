@@ -12,7 +12,7 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '---------------------------------------------------------------------------------------
-' Module    : cWidgetForm
+' Module    : clsWidgetForm
 ' Author    : beededea
 ' Date      : 20/11/2025
 ' Purpose   : A class that encapsulates the properties of a 'widgetForm'.
@@ -50,6 +50,41 @@ Public Event MouseMove(Button As Integer, Shift As Integer, x As Single, y As Si
 Public Event MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
 
 
+Implements IVisual
+
+Private m_Base As clsVisualBase
+
+
+Public Sub AddChild(ByVal child As IVisual)
+    m_Base.AddChild child
+End Sub
+
+Public Property Let x(ByVal v As Long): m_Base.x = v: End Property
+Public Property Let y(ByVal v As Long): m_Base.y = v: End Property
+
+'========================
+' Interface forwarding
+'========================
+Private Sub IVisual_Render(ByVal hdc As Long)
+    m_Base.Render hdc
+End Sub
+
+Private Function IVisual_GetAbsoluteX() As Long
+    IVisual_GetAbsoluteX = m_Base.GetAbsoluteX
+End Function
+
+Private Function IVisual_GetAbsoluteY() As Long
+    IVisual_GetAbsoluteY = m_Base.GetAbsoluteY
+End Function
+
+Private Function IVisual_HitTest(ByVal x As Long, ByVal y As Long) As IVisual
+    Set IVisual_HitTest = m_Base.HitTest(x, y)
+End Function
+
+Private Sub IVisual_MouseDown(Button As Integer, Shift As Integer, x As Long, y As Long)
+    Debug.Print "Form received click"
+End Sub
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Class_Initialize
@@ -73,13 +108,15 @@ Private Sub Class_Initialize()
      mScaleSize = 1
      mRotate = 0
      mTooltip = vbNullString
+     
+         Set m_Base = New clsVisualBase
 
     On Error GoTo 0
     Exit Sub
 
 Class_Initialize_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Initialize of Class Module cWidgetForm"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Initialize of Class Module clsWidgetForm"
 End Sub
 
 
@@ -99,8 +136,10 @@ Private Sub Class_Terminate()
 
 Class_Terminate_Error:
 
-     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Terminate of Class Module cWidgetForm"
+     MsgBox "Error " & Err.Number & " (" & Err.Description & ") in procedure Class_Terminate of Class Module clsWidgetForm"
 End Sub
+
+
 
 
 '
@@ -121,7 +160,7 @@ Public Property Get Left() As Long
 
 LeftGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Left
@@ -149,7 +188,7 @@ Public Property Let Left(ByVal newValue As Long)
 
 LeftLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Left of Class Module clsWidgetForm"
 End Property
 
 
@@ -171,7 +210,7 @@ Public Property Get Top() As Long
 
 TopGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Top
@@ -198,7 +237,7 @@ Public Property Let Top(ByVal newValue As Long)
 
 TopLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Top of Class Module clsWidgetForm"
 End Property
 
 
@@ -219,7 +258,7 @@ Public Property Get Enabled() As Boolean
 
 EnabledGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Enabled
@@ -246,7 +285,7 @@ Public Property Let Enabled(ByVal newValue As Boolean)
 
 EnabledLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Enabled of Class Module clsWidgetForm"
 End Property
 
 '
@@ -267,7 +306,7 @@ Public Property Get Height() As Long
 
 HeightGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Height
@@ -292,7 +331,7 @@ Public Property Let Height(ByVal newValue As Long)
 
 HeightLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Height of Class Module clsWidgetForm"
 End Property
 
 
@@ -313,7 +352,7 @@ Public Property Get Width() As Long
 
 WidthGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module clsWidgetForm"
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -339,7 +378,7 @@ Public Property Let Width(ByVal newValue As Long)
 
 WidthLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Width of Class Module clsWidgetForm"
 End Property
 
 
@@ -362,7 +401,7 @@ Public Property Get Opacity() As Long
 
 OpacityGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module clsWidgetForm"
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -390,7 +429,7 @@ Public Property Let Opacity(ByVal newValue As Long)
 
 OpacityLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Opacity of Class Module clsWidgetForm"
 End Property
 
 
@@ -413,7 +452,7 @@ Public Property Get Name() As String
 
 NameGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Name
@@ -434,7 +473,7 @@ Public Property Let Name(ByVal newValue As String)
 
 NameLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Name of Class Module clsWidgetForm"
 End Property
 
 
@@ -455,7 +494,7 @@ Public Function Refresh() As String
 
 RefreshGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Function Refresh of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Function Refresh of Class Module clsWidgetForm"
 End Function
 
 
@@ -477,7 +516,7 @@ Public Property Get Visible() As Boolean
 
 VisibleGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Visible
@@ -498,7 +537,7 @@ Public Property Let Visible(ByVal newValue As Boolean)
 
 VisibleLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Visible of Class Module clsWidgetForm"
 End Property
 
 
@@ -522,7 +561,7 @@ Public Property Get ScaleSize() As Single
 
 ScaleSizeGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : ScaleSize
@@ -543,7 +582,7 @@ Public Property Let ScaleSize(ByVal newValue As Single)
 
 ScaleSizeLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property ScaleSize of Class Module clsWidgetForm"
 End Property
 
 
@@ -564,7 +603,7 @@ Public Property Get Rotate() As Single
 
 RotateGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Rotate
@@ -585,7 +624,7 @@ Public Property Let Rotate(ByVal newValue As Single)
 
 RotateLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Rotate of Class Module clsWidgetForm"
 End Property
 
 
@@ -606,7 +645,7 @@ Public Property Get Tooltip() As String
 
 TooltipGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Tooltip
@@ -625,7 +664,7 @@ Public Property Let Tooltip(ByVal newValue As String)
 
 TooltipLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Tooltip of Class Module clsWidgetForm"
 End Property
 
 
@@ -649,7 +688,7 @@ Public Property Get Locked() As Long
 
 LockedGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : Locked
@@ -668,7 +707,7 @@ Public Property Let Locked(ByVal newValue As Long)
 
 LockedLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property Locked of Class Module clsWidgetForm"
 End Property
 
 
@@ -690,7 +729,7 @@ Public Property Get RotationPointX() As Long
 
 RotationPointXGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : RotationPointX
@@ -709,7 +748,7 @@ Public Property Let RotationPointX(ByVal newValue As Long)
 
 RotationPointXLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointX of Class Module clsWidgetForm"
 End Property
 
 
@@ -730,7 +769,7 @@ Public Property Get RotationPointY() As Long
 
 RotationPointYGet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module clsWidgetForm"
 End Property
 '---------------------------------------------------------------------------------------
 ' Property  : RotationPointY
@@ -749,7 +788,7 @@ Public Property Let RotationPointY(ByVal newValue As Long)
 
 RotationPointYLet_Error:
 
-    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module cWidgetForm"
+    MsgBox "Error " & Err.Number & " (" & Err.Description & ") in Property RotationPointY of Class Module clsWidgetForm"
 End Property
 
 

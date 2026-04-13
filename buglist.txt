@@ -1,4 +1,5 @@
 
+<<<<<<< Updated upstream
 
 ' Cairo Problems:
 ' ===============
@@ -40,6 +41,48 @@
 ' Renamed cls and bas filenames to match internal names
 ' MouseUp capture and release implemented
 
+=======
+' Cairo Problems:
+' ===============
+'
+' When you use Cairo with an HDC target (via cairo_win32_surface_create(hDC)), the resulting surface is not alpha-aware.
+' GDI does not support per-pixel alpha — only color values. So when you draw an image with semi-transparent pixels, Cairo
+' composites them as if against a black background before blitting them onto your window — causing shadows to appear dark and non-transparent.
+' TwinBasic for reading from scripting dictionary and feeding to Cairo using callback function, however, VB6 performs callbacks without safety, TwinBASIC allows AddressOf callbacks safely; VB6 cannot
+
+' Potential solutions:
+' =======================
+
+' A.
+' Cairo does all compositing in a true ARGB32 surface.
+' You transfer that buffer to a GDI DIB section.
+' AlphaBlend() performs proper per-pixel alpha blending with the window’s background.
+
+' B.
+' Do the whole thing using GDI+ as a demonstration of overall capability - (tested and working) -
+' - when working later, I will slot in the Cairo code
+
+' Status for B:
+' =============
+
+' We have a version that now places a Cairo image to the DC of a solid white background of user-created form using createWindowEx - (tested and working)
+' We have added the necessary code to place an image on a solid VB6 form using GDI+ (tested and working)
+' We have added the necessary code to place a stable image on a fully transparent form using GDI+ (tested and working)
+' We have added the capability to store and extract an std picture image from a dictionary (CB's dict) and with my RC collection wrapper (tested and working)
+' We have added bitmap capability to my RC collection wrapper (tested and working)
+' Added a menu to allow easy program closing (tested and working)
+' Added an image class to take an image bitmap and other properties to draw a single image on the screen (tested and working)
+' Added routine to read image properties from parsed XML (tested and working).
+' Added a load of multiple image objects to the screen using XML (tested and working).
+' Added event handling for a single image object.
+' Added a collection and class for hit testing to identify each image object's bounds and transparent areas.
+' Added a collection and an event class 'sink' to allow the handling and raising of events for each image object.
+' Fully documented.
+' Fixed bugs in initialise from XML re: missing fields causing errors & missing " px" in metrics.
+' Renamed cls and bas filenames to match internal names
+' MouseUp capture and release implemented
+
+>>>>>>> Stashed changes
 ' Tasks?
 ' ======
 
@@ -140,4 +183,8 @@
 '        Set new bitmap
 '        LockBitmap
 
+<<<<<<< Updated upstream
 ' GdipBitmapLockBits can act as a future zero-copy bridge between GDI+ LockBits and a Cairo surface, used in high-speed gaming...
+=======
+' GdipBitmapLockBits can act as a future zero-copy bridge between GDI+ LockBits and a Cairo surface, used in high-speed gaming...ddressOf callbacks safely; VB6 cannot
+>>>>>>> Stashed changes

@@ -81,9 +81,9 @@ Private Type JustMyUDT
     dict As Dictionary
 End Type
 
-#Const x64StackIssues = ((Mac = 0) And Win64 And (TWINBASIC = 0))
+#Const x64StackIssues = ((Mac = 0) And Win64 And (twinbasic = 0))
 
-#If TWINBASIC Then
+#If twinbasic Then
     Private mDict As Collection ' std TB collection
 #Else
     Private mDict As Dictionary ' scripting.dictionary
@@ -388,6 +388,7 @@ Public Sub Clear()
         GdipDisposeImage mDict(k) 'NOT DeleteObject mDict(k)
     Next
     
+    ' this should not be here if TB and using a TB collection
     mDict.RemoveAll
 
     On Error GoTo 0

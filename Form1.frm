@@ -43,13 +43,20 @@ Attribute VB_Exposed = False
 '   modMain               This module, containing useful public routines used by this program
 '   modSubClass           This module sub classes Form1 to intercept mouse-move and mouse-down messages, performs hit-tests and raises events.
 '   modWindowAPI          Module that may provide a user-created window rather than a VB6 form (currently unused).
+<<<<<<< Updated upstream
+=======
+'   clsWidgetForm           Parent form for the
+>>>>>>> Stashed changes
 
 ' Supporting classes & modules:
 '   cGdipImageList        Wrapper class giving a 'Richclient' imageList interface to a collection whilst using GDI+ to load, resize and read images from it.
 '   cTBImageList          As above but using a native TwinBasic collection whilst still using GDI+ to resize images where needed.
 '   Dictionary            Christian Buse's Scripting.Dictionary (collection) replacement.
 '   mGDIPImageList        Module to support cGdipImageList & cTBImageList, subs, functions and API declarations.
+<<<<<<< Updated upstream
 '   cImageEventHost       An event bridge helper class between the collection of images and the cImageGDIP image types to sink events.
+=======
+>>>>>>> Stashed changes
 
 
 ' The critical parts of this program are:
@@ -86,7 +93,7 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
-Private WithEvents thisWidget As cWidgetForm
+Private WithEvents thisWidget As clsWidgetForm
 Attribute thisWidget.VB_VarHelpID = -1
 Private WithEvents thisGDIPimage As cImageGDIP
 Attribute thisGDIPimage.VB_VarHelpID = -1
@@ -132,12 +139,12 @@ Public Sub vbFormSetup()
     On Error GoTo vbFormSetup_Error
 
     hVBFormHwnd = Form1.hwnd
-    thisHDC = Form1.hDC
+    thisHDC = Form1.hdc
     sWidgetOpacity = "100"
     sWidgetZOrder = "2"
     widgetFormName = "Transparent Cairo"
     
-    Set thisWidget = New cWidgetForm
+    Set thisWidget = New clsWidgetForm
     Set thisGDIPimage = New cImageGDIP
         
     ' standard VB6 collections used for hit testing and event capture
@@ -549,7 +556,7 @@ Public Sub addImagesToHitAndEventCollections(ByVal bmp As Long, ByVal thisName A
     Set eventHost.bubblingEventImg = img
     
     ' pass the index to the class to allow layer identification by ID number.
-    eventHost.Index = mEventHostCollection.Count + 1
+    eventHost.index = mEventHostCollection.Count + 1
     
     eventHost.Name = thisName
     
@@ -570,7 +577,7 @@ End Sub
 ' Procedure : addThisForm
 ' Author    : beededea
 ' Date      : 27/03/2026
-' Purpose   : creates an Form of type cWidgetForm with associated properties,
+' Purpose   : creates an Form of type clsWidgetForm with associated properties,
 
 '---------------------------------------------------------------------------------------
 '
@@ -578,7 +585,7 @@ Private Sub addThisForm(ByVal thisName As String, ByVal thisX As Long, ByVal thi
     
     On Error GoTo addThisForm_Error
         
-    ' creates a widget of type cWidgetForm with associated properties
+    ' creates a widget of type clsWidgetForm with associated properties
     With thisWidget
         .Left = thisX
         .Top = thisY
